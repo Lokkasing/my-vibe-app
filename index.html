@@ -27,7 +27,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         h1 { font-size: 1.5rem; margin-bottom: 20px; color: #00ffff; }
-        #location { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
+        #coord { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; color: #ffffff; }
         #weather { font-size: 3rem; font-weight: bold; margin: 10px 0; }
         #time { font-size: 1rem; opacity: 0.8; font-family: monospace; }
     </style>
@@ -36,42 +36,37 @@
 
     <div class="card">
         <h1>明天开始 vibe coding！</h1>
-        <div id="location">正在定位...</div>
+        <div id="coord">定位中...</div>
         <div id="weather">--°C</div>
         <div id="time">--:--:--</div>
     </div>
 
     <script>
-        // 1. 获取地理位置及天气
+        // 获取经纬度并获取天气
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const { latitude, longitude } = position.coords;
                 
-                // 获取城市名 (增强版逻辑：市 -> 县 -> 区 -> 省 -> 坐标)
-                const geoUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=zh-CN`;
+                // 展示经纬度 (这是最稳的)
+                document.getElementById('coord').innerText = `纬度: ${latitude.toFixed(2)}, 经度: ${longitude.toFixed(2)}`;
+                
+                // 获取天气
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
                 try {
-                    const geoRes = await fetch(geoUrl);
-                    const geoData = await geoRes.json();
-                    const addr = geoData.address;
-                    const locationName = addr.city || addr.town || addr.county || addr.state || "无法识别地点";
-                    document.getElementById('location').innerText = `${locationName}`;
-                    
-                    // 获取天气
-                    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
                     const weatherRes = await fetch(weatherUrl);
                     const weatherData = await weatherRes.json();
                     document.getElementById('weather').innerText = `${weatherData.current_weather.temperature}°C`;
                 } catch (e) {
-                    document.getElementById('location').innerText = "获取信息失败";
+                    document.getElementById('weather').innerText = "天气加载失败";
                 }
             }, () => {
-                document.getElementById('location').innerText = "定位权限被拒绝";
+                document.getElementById('coord').innerText = "定位权限被拒绝";
             });
         } else {
-            document.getElementById('location').innerText = "浏览器不支持定位";
+            document.getElementById('coord').innerText = "浏览器不支持定位";
         }
 
-        // 2. 更新时间
+        // 更新时间
         setInterval(() => {
             document.getElementById('time').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
         }, 1000);
