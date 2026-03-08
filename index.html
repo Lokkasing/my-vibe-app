@@ -1,41 +1,75 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
-    <title>Vibe Coding Timer</title>
+    <title>Vibe Coding | EOS Portfolio</title>
     <style>
         body {
             margin: 0;
             height: 100vh;
             display: flex;
-            flex-direction: column; /* 垂直排列 */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #ffffff;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', sans-serif;
         }
-        h1 { font-size: 3rem; margin-bottom: 10px; }
-        #clock { font-size: 2rem; color: #00ffff; font-family: monospace; }
+        h1 { font-size: 2rem; margin-bottom: 20px; }
+        .card { 
+            background: rgba(255, 255, 255, 0.1); 
+            padding: 20px; 
+            border-radius: 15px; 
+            backdrop-filter: blur(10px);
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+        }
+        #clock { font-size: 1.5rem; color: #00ffff; margin-bottom: 10px; }
+        .data { font-size: 1.1rem; margin: 5px 0; }
+        .profit { color: #00ff88; font-weight: bold; }
+        .loss { color: #ff4444; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1>明天开始 vibe coding！</h1>
-    <div id="clock">正在获取时间...</div>
+    
+    <div class="card">
+        <div id="clock">--:--:--</div>
+        <div id="price" class="data">加载价格中...</div>
+        <div id="pnl" class="data">--</div>
+    </div>
 
     <script>
-        function updateTime() {
+        const holdings = 670;
+        const costPrice = 11.97;
+
+        async function updateDashboard() {
+            // 更新时间
             const now = new Date();
-            // 格式化时间为 HH:mm:ss
-            const timeString = now.toLocaleTimeString('zh-CN', { hour12: false });
-            document.getElementById('clock').innerText = timeString;
+            document.getElementById('clock').innerText = now.toLocaleTimeString('zh-CN', { hour12: false });
+
+            // 获取 EOS 价格
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=eos&vs_currencies=usd');
+                const data = await res.json();
+                const currentPrice = data.eos.usd;
+                
+                const totalPnL = (currentPrice - costPrice) * holdings;
+                
+                document.getElementById('price').innerText = `EOS 现价: $${currentPrice}`;
+                
+                const pnlEl = document.getElementById('pnl');
+                pnlEl.className = totalPnL >= 0 ? 'data profit' : 'data loss';
+                pnlEl.innerText = `总盈亏: $${totalPnL.toFixed(2)}`;
+            } catch (e) {
+                document.getElementById('price').innerText = "价格加载失败";
+            }
         }
-        // 每秒刷新一次
-        setInterval(updateTime, 1000);
-        updateTime(); // 初始化执行一次
+
+        setInterval(updateDashboard, 5000); // 每5秒刷新一次币价
+        updateDashboard();
     </script>
 </body>
-
 </html>
