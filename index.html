@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Coding | Weather</title>
+    <title>Vibe Weather</title>
     <style>
         body {
             margin: 0;
@@ -14,7 +14,7 @@
             align-items: center;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: sans-serif;
         }
         .card { 
             background: rgba(255, 255, 255, 0.1); 
@@ -25,49 +25,50 @@
             width: 80%;
             max-width: 350px;
         }
-        #time { font-size: 1.2rem; color: #00ffff; margin-bottom: 10px; }
-        #weather { font-size: 2rem; font-weight: bold; margin: 10px 0; }
-        #location { font-size: 1rem; opacity: 0.8; }
+        #location { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        #weather { font-size: 3rem; margin: 10px 0; }
+        #time { font-size: 1rem; opacity: 0.7; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div id="time">获取时间中...</div>
-        <div id="location">定位中...</div>
-        <div id="weather">---</div>
+        <div id="location">正在定位...</div>
+        <div id="weather">--°C</div>
+        <div id="time">--:--:--</div>
     </div>
 
     <script>
-        // 更新时间
-        function updateTime() {
-            document.getElementById('time').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-        }
-        setInterval(updateTime, 1000);
-        updateTime();
-
-        // 获取地理位置并展示 (这里使用浏览器自带的 Geolocation API)
+        // 获取地理位置及城市名
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async (position) => {
                 const { latitude, longitude } = position.coords;
-                document.getElementById('location').innerText = `纬度: ${latitude.toFixed(2)}, 经度: ${longitude.toFixed(2)}`;
                 
-                // 使用 Open-Meteo 免费天气 API，无需复杂的 API Key
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+                // 1. 反向地理编码：通过经纬度获取城市名
+                const geoUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=zh-CN`;
                 
                 try {
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    document.getElementById('weather').innerText = `${data.current_weather.temperature}°C`;
+                    const geoRes = await fetch(geoUrl);
+                    const geoData = await geoRes.json();
+                    const country = geoData.address.country || "";
+                    const city = geoData.address.city || geoData.address.town || geoData.address.district || "未知区域";
+                    document.getElementById('location').innerText = `${country} · ${city}`;
+                    
+                    // 2. 获取天气
+                    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+                    const weatherRes = await fetch(weatherUrl);
+                    const weatherData = await weatherRes.json();
+                    document.getElementById('weather').innerText = `${weatherData.current_weather.temperature}°C`;
                 } catch (e) {
-                    document.getElementById('weather').innerText = "天气获取失败";
+                    document.getElementById('location').innerText = "获取信息失败";
                 }
-            }, () => {
-                document.getElementById('location').innerText = "定位权限被拒绝";
             });
-        } else {
-            document.getElementById('location').innerText = "浏览器不支持定位";
         }
+
+        // 更新时间
+        setInterval(() => {
+            document.getElementById('time').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        }, 1000);
     </script>
 </body>
 </html>
