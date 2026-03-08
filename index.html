@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Coding | EOSE Portfolio</title>
+    <title>Vibe Coding | Weather</title>
     <style>
         body {
             margin: 0;
@@ -12,74 +12,62 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
-        h1 { font-size: 1.8rem; margin-bottom: 20px; text-align: center; }
         .card { 
             background: rgba(255, 255, 255, 0.1); 
-            padding: 25px; 
-            border-radius: 20px; 
+            padding: 30px; 
+            border-radius: 25px; 
             backdrop-filter: blur(15px);
             text-align: center;
-            width: 85%;
-            max-width: 320px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            max-width: 350px;
         }
-        #clock { font-size: 1.2rem; color: #00ffff; margin-bottom: 15px; font-family: monospace; }
-        .data { font-size: 1.1rem; margin: 8px 0; }
-        .profit { color: #00ff88; font-weight: bold; }
-        .loss { color: #ff4444; font-weight: bold; }
+        #time { font-size: 1.2rem; color: #00ffff; margin-bottom: 10px; }
+        #weather { font-size: 2rem; font-weight: bold; margin: 10px 0; }
+        #location { font-size: 1rem; opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <h1>明天开始 vibe coding！</h1>
-    
     <div class="card">
-        <div id="clock">--:--:--</div>
-        <div id="price" class="data">加载 EOSE 价格中...</div>
-        <div id="pnl" class="data">--</div>
+        <div id="time">获取时间中...</div>
+        <div id="location">定位中...</div>
+        <div id="weather">---</div>
     </div>
 
     <script>
-        // 你的核心资产数据
-        const holdings = 670;
-        const costPrice = 11.97;
-
-        async function updateDashboard() {
-            // 1. 更新时间
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('zh-CN', { hour12: false });
-
-            // 2. 获取 EOSE 价格 (这里使用 eose 作为 ID，若接口无数据，请检查该币种在 CoinGecko 的确切 ID)
-            try {
-                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=eose&vs_currencies=usd');
-                const data = await res.json();
-                
-                // 检查数据是否存在
-                if (data.eose && data.eose.usd) {
-                    const currentPrice = data.eose.usd;
-                    const totalPnL = (currentPrice - costPrice) * holdings;
-                    
-                    document.getElementById('price').innerText = `EOSE 现价: $${currentPrice.toFixed(2)}`;
-                    
-                    const pnlEl = document.getElementById('pnl');
-                    pnlEl.className = totalPnL >= 0 ? 'data profit' : 'data loss';
-                    pnlEl.innerText = `总盈亏: ${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`;
-                } else {
-                    document.getElementById('price').innerText = "EOSE 实时数据暂缺";
-                    document.getElementById('pnl').innerText = "请检查代号是否正确";
-                }
-            } catch (e) {
-                document.getElementById('price').innerText = "网络连接异常";
-            }
+        // 更新时间
+        function updateTime() {
+            document.getElementById('time').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
         }
+        setInterval(updateTime, 1000);
+        updateTime();
 
-        // 5秒刷新一次
-        setInterval(updateDashboard, 5000);
-        updateDashboard();
+        // 获取地理位置并展示 (这里使用浏览器自带的 Geolocation API)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const { latitude, longitude } = position.coords;
+                document.getElementById('location').innerText = `纬度: ${latitude.toFixed(2)}, 经度: ${longitude.toFixed(2)}`;
+                
+                // 使用 Open-Meteo 免费天气 API，无需复杂的 API Key
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+                
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    document.getElementById('weather').innerText = `${data.current_weather.temperature}°C`;
+                } catch (e) {
+                    document.getElementById('weather').innerText = "天气获取失败";
+                }
+            }, () => {
+                document.getElementById('location').innerText = "定位权限被拒绝";
+            });
+        } else {
+            document.getElementById('location').innerText = "浏览器不支持定位";
+        }
     </script>
 </body>
 </html>
