@@ -12,14 +12,14 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #f3f1ed;  /* 温暖的米白底色 */
+            background: #f3f1ed;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 16px;
             line-height: 1.5;
-            color: #3e3a36;  /* 深褐色文字 */
+            color: #3e3a36;
         }
         .container {
             max-width: 500px;
@@ -28,31 +28,17 @@
             border-radius: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.03);
             padding: 28px 20px 32px;
-            border: 1px solid #e8e4da;  /* 极浅边框，增加层次 */
+            border: 1px solid #e8e4da;
         }
         h1 {
             font-size: 26px;
-            font-weight: 500;
+            font-weight: 600; /* 加粗 */
             letter-spacing: 0.02em;
             color: #4a4540;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             margin-bottom: 24px;
             border-bottom: 1px solid #e0dbd1;
             padding-bottom: 16px;
         }
-        h1 span {
-            background: #e8e2d8;
-            color: #6f5e4f;
-            font-size: 12px;
-            font-weight: 400;
-            padding: 4px 10px;
-            border-radius: 40px;
-            letter-spacing: 0.5px;
-        }
-
-        /* 卡片区域 — 无印良品风格：柔和底色、轻微内凹感 */
         .card {
             background: #f9f7f4;
             border-radius: 18px;
@@ -62,7 +48,7 @@
         }
         .section-title {
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600; /* 加粗 */
             color: #6d6157;
             margin-bottom: 18px;
             display: flex;
@@ -93,8 +79,6 @@
         .input-field input:focus {
             border-color: #b7aa9c;
         }
-
-        /* 累计收入 — 简洁线条，不加过度装饰 */
         .accumulated-row {
             background: #f5f2ed;
             border-radius: 40px;
@@ -107,13 +91,13 @@
         }
         .accumulated-label {
             font-size: 16px;
-            font-weight: 400;
+            font-weight: 600; /* 加粗 */
             color: #6b5f54;
         }
         .accumulated-value {
             font-size: 28px;
             font-weight: 500;
-            color: #4c6b5f;  /* 低调的绿灰色 */
+            color: #4c6b5f;
         }
         .start-time-row {
             display: flex;
@@ -137,8 +121,6 @@
             background: white;
             color: #3e3a36;
         }
-
-        /* 每秒/每分钟一行 — 柔和的分隔 */
         .rate-row {
             display: flex;
             background: white;
@@ -163,8 +145,6 @@
             font-weight: 500;
             color: #4f5d55;
         }
-
-        /* 商品卡片 — 无背景色块，只用淡灰色底色和浅色边框 */
         .goal-card {
             background: #ffffff;
             border-radius: 20px;
@@ -173,7 +153,6 @@
             border: 1px solid #e9e2d9;
             transition: background 0.1s;
         }
-        /* 去掉红黄绿背景，改为极淡的色调区分（非常 subtle） */
         .goal-card.green {
             background-color: #f6f9f4;
             border-left: 4px solid #b7c9b1;
@@ -186,7 +165,6 @@
             background-color: #fdf5f2;
             border-left: 4px solid #e3bcb4;
         }
-
         .goal-header {
             display: flex;
             gap: 10px;
@@ -218,7 +196,6 @@
         .delete-btn:hover {
             color: #a28e7c;
         }
-
         .goal-progress-row {
             display: flex;
             align-items: center;
@@ -227,10 +204,10 @@
         }
         progress {
             flex: 1;
-            height: 8px;  /* 更细的进度条，更日系 */
+            height: 8px;
             border-radius: 20px;
             overflow: hidden;
-            background-color: #e4ddd4; /* 背景色 */
+            background-color: #e4ddd4;
             border: none;
         }
         progress::-webkit-progress-bar {
@@ -238,15 +215,13 @@
             border-radius: 20px;
         }
         progress::-webkit-progress-value {
-            background-color: #9faea5;  /* 柔和灰绿，不抢眼 */
+            background-color: #9faea5;
             border-radius: 20px;
         }
-        /* 兼容 Firefox */
         progress::-moz-progress-bar {
             background-color: #9faea5;
             border-radius: 20px;
         }
-
         .goal-percent {
             font-size: 15px;
             font-weight: 400;
@@ -254,7 +229,6 @@
             min-width: 48px;
             text-align: right;
         }
-
         .goal-stats {
             display: flex;
             justify-content: space-between;
@@ -273,8 +247,6 @@
             border-radius: 30px;
             display: inline-block;
         }
-
-        /* 添加按钮 — 极简，无彩色 */
         .add-btn {
             background: #ffffff;
             border: 1px dashed #cbc1b5;
@@ -292,7 +264,6 @@
             background: #f7f3ef;
             border-color: #b7aa9c;
         }
-
         .footnote {
             font-size: 12px;
             color: #b0a69b;
@@ -301,8 +272,6 @@
             border-top: 1px solid #ece6de;
             padding-top: 18px;
         }
-
-        /* Toast 保持简单 */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -329,7 +298,7 @@
     <div id="toast">仅支持输入数字</div>
 
     <div class="container" id="app">
-        <h1>剁手计算器 <span>日式版</span></h1>
+        <h1>剁手计算器</h1>  <!-- 去掉了“日式版” -->
 
         <!-- 累计收入 + 起始时间 -->
         <div class="accumulated-row">
@@ -370,11 +339,7 @@
         <!-- 攒钱目标模块 -->
         <div class="card" style="padding-bottom: 10px;">
             <div class="section-title">🎯 攒钱目标</div>
-
-            <!-- 商品列表容器 -->
             <div id="goalList"></div>
-
-            <!-- 添加商品按钮 -->
             <button class="add-btn" id="addGoalBtn">+ 添加商品</button>
         </div>
 
@@ -394,7 +359,7 @@
             const toast = document.getElementById('toast');
 
             // ----- 常量 -----
-            const SECONDS_PER_MONTH = 30 * 24 * 3600; // 按30天/月
+            const SECONDS_PER_MONTH = 30 * 24 * 3600;
 
             // ----- 本地存储键名 -----
             const STORAGE_KEYS = {
@@ -403,12 +368,10 @@
                 goals: 'daoshou_goals',
             };
 
-            // ----- 全局变量 -----
             let timerInterval = null;
             let goals = [];
             let nextId = 100;
 
-            // ----- 辅助：显示toast -----
             function showToast(message) {
                 toast.innerText = message;
                 toast.classList.add('show');
@@ -417,7 +380,6 @@
                 }, 2000);
             }
 
-            // ----- 辅助：格式化日期时间 -----
             function formatDateTimeForInput(date) {
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -427,7 +389,6 @@
                 return `${year}-${month}-${day}T${hours}:${minutes}`;
             }
 
-            // ----- 获取起始时间 -----
             function getStartTime() {
                 const saved = localStorage.getItem(STORAGE_KEYS.startTime);
                 if (saved) {
@@ -439,7 +400,6 @@
                 return defaultStart;
             }
 
-            // ----- 加载设置 -----
             function loadSettings() {
                 if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) {
                     monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
@@ -472,13 +432,11 @@
                 }
             }
 
-            // ----- 计算每秒收入 -----
             function getPerSecondRate() {
                 const monthly = parseFloat(monthlySalaryInput.value) || 0;
                 return monthly / SECONDS_PER_MONTH;
             }
 
-            // ----- 计算累计收入 -----
             function getAccumulatedSinceStart() {
                 const startTimeStr = startTimeInput.value;
                 if (!startTimeStr) return 0;
@@ -489,21 +447,18 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示（每秒调用）-----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
                 accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每秒/每分钟显示 -----
             function updateRates() {
                 const perSecond = getPerSecondRate();
                 perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
                 perMinuteSpan.innerText = '¥' + (perSecond * 60).toFixed(2);
             }
 
-            // ----- 根据价格和月薪获取卡片样式类（新分级逻辑）-----
             function getPriceColorClass(price, monthlySalary) {
                 if (monthlySalary <= 0) return 'green';
                 const ratio = (price / monthlySalary) * 100;
@@ -512,7 +467,6 @@
                 return 'green';
             }
 
-            // ----- 更新所有商品卡片的动态数据（不重建DOM）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -541,14 +495,12 @@
                         worktimeSpan.innerText = `⏱️ ${timeStr}`;
                     }
 
-                    // 更新颜色类
                     const colorClass = getPriceColorClass(price, monthlySalary);
                     card.className = `goal-card ${colorClass}`;
                     card.setAttribute('data-id', goal.id);
                 });
             }
 
-            // ----- 过滤价格输入（只允许数字和小数点）-----
             function filterPriceInput(value) {
                 let filtered = value.replace(/[^\d.]/g, '');
                 const parts = filtered.split('.');
@@ -558,7 +510,6 @@
                 return filtered;
             }
 
-            // ----- 渲染商品列表（首次或增删时调用）-----
             function renderGoals() {
                 const accumulated = getAccumulatedSinceStart();
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
@@ -592,7 +543,6 @@
                 });
                 goalListDiv.innerHTML = html;
 
-                // 绑定商品名称输入事件
                 document.querySelectorAll('.goal-name').forEach((input, index) => {
                     input.addEventListener('input', (e) => {
                         goals[index].name = e.target.value;
@@ -600,7 +550,6 @@
                     });
                 });
 
-                // 绑定价格输入事件
                 document.querySelectorAll('.goal-price').forEach(input => {
                     input.addEventListener('input', function(e) {
                         const rawValue = e.target.value;
@@ -629,7 +578,7 @@
                         if (newPrice !== goal.price) {
                             goal.price = newPrice;
                             saveSettings();
-                            renderGoals();  // 重新渲染以更新颜色
+                            renderGoals();
                         }
                     });
                 });
@@ -642,14 +591,12 @@
                 });
             }
 
-            // ----- 删除商品 -----
             window.deleteGoal = function(id) {
                 goals = goals.filter(g => g.id !== id);
                 saveSettings();
                 renderGoals();
             };
 
-            // ----- 添加商品 -----
             function addGoal() {
                 goals.push({
                     id: nextId++,
@@ -660,11 +607,10 @@
                 renderGoals();
             }
 
-            // ----- 事件绑定（静态元素）-----
             monthlySalaryInput.addEventListener('input', () => {
                 updateRates();
                 updateAccumulated();
-                renderGoals();  // 月薪变化会影响颜色，重新渲染
+                renderGoals();
                 saveSettings();
             });
             startTimeInput.addEventListener('input', () => {
@@ -673,7 +619,6 @@
             });
             addGoalBtn.addEventListener('click', addGoal);
 
-            // ----- 定时器每秒更新累计收入，但不重新渲染列表 -----
             function startTimer() {
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(() => {
@@ -681,7 +626,6 @@
                 }, 1000);
             }
 
-            // ----- 初始化 -----
             window.addEventListener('load', function() {
                 loadSettings();
                 updateRates();
