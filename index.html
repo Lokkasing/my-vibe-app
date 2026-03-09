@@ -3,134 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>剁手计算器 · 多目标版</title>
+    <title>剁手计算器 · 日式极简</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f3f1ed;  /* 温暖的米白底色 */
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px;
-            position: relative;
+            padding: 16px;
+            line-height: 1.5;
+            color: #3e3a36;  /* 深褐色文字 */
         }
         .container {
-            max-width: 480px;
+            max-width: 500px;
             width: 100%;
-            background: white;
-            border-radius: 28px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            padding: 20px 16px 28px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            padding: 28px 20px 32px;
+            border: 1px solid #e8e4da;  /* 极浅边框，增加层次 */
         }
         h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a1e2b;
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            color: #4a4540;
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin-bottom: 16px;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e0dbd1;
+            padding-bottom: 16px;
         }
         h1 span {
-            background: #fee9e7;
-            color: #e35f5a;
+            background: #e8e2d8;
+            color: #6f5e4f;
             font-size: 12px;
+            font-weight: 400;
             padding: 4px 10px;
             border-radius: 40px;
+            letter-spacing: 0.5px;
         }
+
+        /* 卡片区域 — 无印良品风格：柔和底色、轻微内凹感 */
         .card {
-            background: #f8fafd;
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 16px;
+            background: #f9f7f4;
+            border-radius: 18px;
+            padding: 20px 18px;
+            margin-bottom: 20px;
+            border: 1px solid #ebe6df;
         }
         .section-title {
             font-size: 15px;
-            font-weight: 600;
-            color: #2f3a4c;
-            margin-bottom: 14px;
+            font-weight: 500;
+            color: #6d6157;
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
             gap: 6px;
+            letter-spacing: 0.3px;
         }
         .input-field {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
         .input-field label {
             display: block;
             font-size: 13px;
-            font-weight: 500;
-            color: #5f6c84;
-            margin-bottom: 5px;
+            font-weight: 400;
+            color: #7b6f64;
+            margin-bottom: 6px;
         }
         .input-field input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px 16px;
             font-size: 15px;
-            border: 1.5px solid #e2e8f0;
+            border: 1px solid #dbd3c9;
             border-radius: 40px;
             background: white;
             outline: none;
+            transition: border-color 0.15s;
         }
-        .input-field input:focus { border-color: #e35f5a; }
+        .input-field input:focus {
+            border-color: #b7aa9c;
+        }
 
-        /* 累计收入区域 */
+        /* 累计收入 — 简洁线条，不加过度装饰 */
         .accumulated-row {
-            background: linear-gradient(135deg, #eef6fb, #ffffff);
+            background: #f5f2ed;
             border-radius: 40px;
-            padding: 16px 18px;
-            margin-bottom: 16px;
+            padding: 16px 22px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border: 1px solid #d4e4f0;
-            flex-wrap: wrap;
-            gap: 8px;
+            border: 1px solid #e2dbd2;
         }
         .accumulated-label {
             font-size: 16px;
-            font-weight: 600;
-            color: #1e3b5c;
+            font-weight: 400;
+            color: #6b5f54;
         }
         .accumulated-value {
             font-size: 28px;
-            font-weight: 800;
-            color: #1e6f5c;
+            font-weight: 500;
+            color: #4c6b5f;  /* 低调的绿灰色 */
         }
-        /* 起始时间行 */
         .start-time-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 12px;
+            margin-top: 12px;
             width: 100%;
             justify-content: space-between;
         }
         .start-time-row label {
             font-size: 13px;
-            color: #3b5a7c;
+            color: #7f7266;
             white-space: nowrap;
         }
         .start-time-row input {
             flex: 1;
-            padding: 6px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 30px;
+            padding: 8px 12px;
+            border: 1px solid #d7cec3;
+            border-radius: 40px;
             font-size: 13px;
             background: white;
+            color: #3e3a36;
         }
 
-        /* 每秒/每分钟 同一行 */
+        /* 每秒/每分钟一行 — 柔和的分隔 */
         .rate-row {
             display: flex;
             background: white;
             border-radius: 40px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            gap: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ece6de;
         }
         .rate-item {
             flex: 1;
@@ -140,134 +155,170 @@
         }
         .rate-label {
             font-size: 14px;
-            color: #4a5a6e;
+            color: #8c7f72;
+            font-weight: 400;
         }
         .rate-value {
             font-size: 20px;
-            font-weight: 700;
-            color: #1a1e2b;
-        }
-        .rate-value small {
-            font-size: 12px;
-            font-weight: 400;
-            color: #8a9bb5;
+            font-weight: 500;
+            color: #4f5d55;
         }
 
-        /* 商品卡片 */
+        /* 商品卡片 — 无背景色块，只用淡灰色底色和浅色边框 */
         .goal-card {
-            background: white;
-            border-radius: 18px;
-            padding: 14px;
-            margin-bottom: 14px;
-            border: 1px solid #e6ecf2;
-            transition: all 0.2s;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e9e2d9;
+            transition: background 0.1s;
         }
-        .goal-card.green { background-color: #e6f7e6; border-left: 6px solid #2ecc71; }
-        .goal-card.yellow { background-color: #fef9e7; border-left: 6px solid #f1c40f; }
-        .goal-card.red { background-color: #fdedec; border-left: 6px solid #e35f5a; }
+        /* 去掉红黄绿背景，改为极淡的色调区分（非常 subtle） */
+        .goal-card.green {
+            background-color: #f6f9f4;
+            border-left: 4px solid #b7c9b1;
+        }
+        .goal-card.yellow {
+            background-color: #fcf9f0;
+            border-left: 4px solid #e0cfb1;
+        }
+        .goal-card.red {
+            background-color: #fdf5f2;
+            border-left: 4px solid #e3bcb4;
+        }
 
         .goal-header {
             display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 14px;
             align-items: center;
             flex-wrap: wrap;
         }
         .goal-header input {
             flex: 1 1 40%;
             min-width: 120px;
-            padding: 8px 12px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 30px;
+            padding: 10px 14px;
+            border: 1px solid #dbd3c9;
+            border-radius: 40px;
             font-size: 14px;
             background: white;
         }
-        .goal-header input:focus { border-color: #e35f5a; }
+        .goal-header input:focus {
+            border-color: #b7aa9c;
+        }
         .delete-btn {
             background: none;
             border: none;
             font-size: 22px;
-            color: #a0b3cc;
+            color: #bfb2a4;
             cursor: pointer;
             padding: 0 6px;
             line-height: 1;
         }
-        .delete-btn:hover { color: #e35f5a; }
+        .delete-btn:hover {
+            color: #a28e7c;
+        }
 
         .goal-progress-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
         progress {
             flex: 1;
-            height: 18px;
-            border-radius: 40px;
+            height: 8px;  /* 更细的进度条，更日系 */
+            border-radius: 20px;
             overflow: hidden;
+            background-color: #e4ddd4; /* 背景色 */
+            border: none;
         }
-        progress::-webkit-progress-bar { background-color: #e2e8f0; border-radius: 40px; }
-        progress::-webkit-progress-value { background-color: #e35f5a; border-radius: 40px; }
+        progress::-webkit-progress-bar {
+            background-color: #e4ddd4;
+            border-radius: 20px;
+        }
+        progress::-webkit-progress-value {
+            background-color: #9faea5;  /* 柔和灰绿，不抢眼 */
+            border-radius: 20px;
+        }
+        /* 兼容 Firefox */
+        progress::-moz-progress-bar {
+            background-color: #9faea5;
+            border-radius: 20px;
+        }
+
+        .goal-percent {
+            font-size: 15px;
+            font-weight: 400;
+            color: #6f655b;
+            min-width: 48px;
+            text-align: right;
+        }
 
         .goal-stats {
             display: flex;
             justify-content: space-between;
             font-size: 13px;
-            color: #3a4c62;
-            margin-bottom: 6px;
+            color: #7f7368;
+            margin-bottom: 8px;
             flex-wrap: wrap;
             gap: 6px;
         }
         .goal-worktime {
             font-size: 13px;
-            font-weight: 500;
-            color: #1f2a3f;
-            background: #f0f4fe;
-            padding: 4px 10px;
+            font-weight: 400;
+            color: #7c6e62;
+            background: #f0ebe5;
+            padding: 4px 12px;
             border-radius: 30px;
             display: inline-block;
         }
+
+        /* 添加按钮 — 极简，无彩色 */
         .add-btn {
-            background: white;
-            border: 2px dashed #cbd5e1;
+            background: #ffffff;
+            border: 1px dashed #cbc1b5;
             border-radius: 40px;
             padding: 14px;
             width: 100%;
-            font-size: 16px;
-            color: #5f6c84;
-            font-weight: 500;
+            font-size: 15px;
+            color: #94897e;
+            font-weight: 400;
             cursor: pointer;
-            margin: 6px 0 14px;
-            transition: all 0.2s;
+            margin: 12px 0 8px;
+            transition: background 0.2s;
         }
         .add-btn:hover {
-            border-color: #e35f5a;
-            color: #e35f5a;
-            background: #fff4f3;
-        }
-        .footnote {
-            font-size: 12px;
-            color: #8a9bb5;
-            text-align: center;
-            margin-top: 20px;
+            background: #f7f3ef;
+            border-color: #b7aa9c;
         }
 
-        /* Toast 样式 */
+        .footnote {
+            font-size: 12px;
+            color: #b0a69b;
+            text-align: center;
+            margin-top: 28px;
+            border-top: 1px solid #ece6de;
+            padding-top: 18px;
+        }
+
+        /* Toast 保持简单 */
         #toast {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
+            background: rgba(80, 70, 60, 0.9);
+            color: #f0ebe4;
+            padding: 10px 24px;
             border-radius: 40px;
             font-size: 14px;
             z-index: 1000;
-            transition: opacity 0.3s;
+            transition: opacity 0.2s;
             opacity: 0;
             pointer-events: none;
-            white-space: nowrap;
+            backdrop-filter: blur(2px);
+            letter-spacing: 0.3px;
         }
         #toast.show {
             opacity: 1;
@@ -278,7 +329,7 @@
     <div id="toast">仅支持输入数字</div>
 
     <div class="container" id="app">
-        <h1>剁手计算器 <span>v3.3</span></h1>
+        <h1>剁手计算器 <span>日式版</span></h1>
 
         <!-- 累计收入 + 起始时间 -->
         <div class="accumulated-row">
@@ -301,7 +352,7 @@
                 <label>💰 月薪（元）</label>
                 <input type="number" id="monthlySalary" value="28000" min="0" step="1000">
             </div>
-            <p style="font-size:12px; color:#8a9bb5; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
+            <p style="font-size:12px; color:#a99f94; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
         </div>
 
         <!-- 每秒/每分钟合并行 -->
@@ -316,7 +367,7 @@
             </div>
         </div>
 
-        <!-- 攒钱目标模块（移除了忍住按钮） -->
+        <!-- 攒钱目标模块 -->
         <div class="card" style="padding-bottom: 10px;">
             <div class="section-title">🎯 攒钱目标</div>
 
@@ -325,8 +376,6 @@
 
             <!-- 添加商品按钮 -->
             <button class="add-btn" id="addGoalBtn">+ 添加商品</button>
-
-            <!-- 注：之前这里的“忍住没买”按钮已移除 -->
         </div>
 
         <div class="footnote">所有设置自动保存 · 花钱前看一眼</div>
@@ -444,7 +493,6 @@
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
                 accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
-                // 更新所有商品卡片的动态数据
                 updateAllGoalCards(accumulated);
             }
 
@@ -457,17 +505,17 @@
 
             // ----- 根据价格和月薪获取卡片样式类（新分级逻辑）-----
             function getPriceColorClass(price, monthlySalary) {
-                if (monthlySalary <= 0) return 'green'; // 月薪未设置时默认绿色
+                if (monthlySalary <= 0) return 'green';
                 const ratio = (price / monthlySalary) * 100;
                 if (ratio >= 10) return 'red';
                 if (ratio >= 5) return 'yellow';
                 return 'green';
             }
 
-            // ----- 更新所有商品卡片的进度、金额、工作时间、颜色（不重建DOM）-----
+            // ----- 更新所有商品卡片的动态数据（不重建DOM）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
-                goals.forEach((goal, index) => {
+                goals.forEach(goal => {
                     const card = document.querySelector(`.goal-card[data-id="${goal.id}"]`);
                     if (!card) return;
                     const price = goal.price || 0;
@@ -477,26 +525,23 @@
                     const m = Math.round((hours - h) * 60);
                     const timeStr = (price === 0) ? '0 小时 0 分钟' : `${h} 小时 ${m} 分钟`;
 
-                    // 更新进度条
                     const progress = card.querySelector('progress');
                     if (progress) {
                         progress.value = percent;
                         progress.nextElementSibling.innerText = percent.toFixed(1) + '%';
                     }
 
-                    // 更新已赚/目标金额
                     const statsSpan = card.querySelector('.goal-stats span:first-child');
                     if (statsSpan) {
                         statsSpan.innerText = `已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}`;
                     }
 
-                    // 更新时间
                     const worktimeSpan = card.querySelector('.goal-worktime');
                     if (worktimeSpan) {
                         worktimeSpan.innerText = `⏱️ ${timeStr}`;
                     }
 
-                    // 更新卡片颜色类
+                    // 更新颜色类
                     const colorClass = getPriceColorClass(price, monthlySalary);
                     card.className = `goal-card ${colorClass}`;
                     card.setAttribute('data-id', goal.id);
@@ -555,7 +600,7 @@
                     });
                 });
 
-                // 绑定价格输入事件：实时过滤非法字符并提示；失焦时校验>0
+                // 绑定价格输入事件
                 document.querySelectorAll('.goal-price').forEach(input => {
                     input.addEventListener('input', function(e) {
                         const rawValue = e.target.value;
@@ -572,7 +617,6 @@
                         if (!goal) return;
 
                         let newPrice = parseFloat(e.target.value);
-                        // 如果输入无效或为0/负数，恢复原价并提示
                         if (isNaN(newPrice) || e.target.value.trim() === '' || newPrice <= 0) {
                             e.target.value = goal.price;
                             if (newPrice <= 0) {
@@ -585,8 +629,7 @@
                         if (newPrice !== goal.price) {
                             goal.price = newPrice;
                             saveSettings();
-                            // 重新渲染以更新颜色（价格变化影响颜色）
-                            renderGoals();
+                            renderGoals();  // 重新渲染以更新颜色
                         }
                     });
                 });
@@ -611,7 +654,7 @@
                 goals.push({
                     id: nextId++,
                     name: '新商品',
-                    price: 1000,  // 默认价格1000，避免为0
+                    price: 1000,
                 });
                 saveSettings();
                 renderGoals();
@@ -621,9 +664,7 @@
             monthlySalaryInput.addEventListener('input', () => {
                 updateRates();
                 updateAccumulated();
-                // 月薪变化会影响颜色，重新渲染（或调用updateAllGoalCards更新颜色）
-                // 直接重新渲染更简单，确保颜色正确
-                renderGoals();
+                renderGoals();  // 月薪变化会影响颜色，重新渲染
                 saveSettings();
             });
             startTimeInput.addEventListener('input', () => {
