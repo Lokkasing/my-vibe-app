@@ -348,7 +348,11 @@
 
             // ----- 常量 -----
             const SECONDS_PER_MONTH = 30 * 24 * 3600;
-            const ANIMATION_DURATION = 800; // 动画时长 ms
+            const ANIMATION_DURATION = {
+                accumulated: 300,   // 累计收入动画时长300ms，适合每秒更新
+                perMinute: 800,
+                percent: 800
+            };
 
             // ----- 本地存储键名 -----
             const STORAGE_KEYS = {
@@ -364,10 +368,10 @@
             // 存储每个元素的动画取消函数
             const animations = new Map();
 
-            // ----- 动画函数：平滑过渡数字 -----
+            // ----- 动画函数：平滑过渡数字，可指定时长 -----
             function animateNumber(element, newValue, options = {}) {
                 const {
-                    duration = ANIMATION_DURATION,
+                    duration = 800,
                     suffix = '',
                     decimals = 2,
                     isCurrency = true,
@@ -506,18 +510,26 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示（使用动画）-----
+            // ----- 更新累计显示（使用短动画）-----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
-                animateNumber(accumulatedSpan, accumulated, { isCurrency: true, decimals: 2 });
+                animateNumber(accumulatedSpan, accumulated, { 
+                    isCurrency: true, 
+                    decimals: 2,
+                    duration: ANIMATION_DURATION.accumulated 
+                });
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每分钟显示（使用动画）-----
+            // ----- 更新每分钟显示（使用800ms动画）-----
             function updatePerMinute() {
                 const perSecond = getPerSecondRate();
                 const perMinute = perSecond * 60;
-                animateNumber(perMinuteSpan, perMinute, { isCurrency: true, decimals: 2 });
+                animateNumber(perMinuteSpan, perMinute, { 
+                    isCurrency: true, 
+                    decimals: 2,
+                    duration: ANIMATION_DURATION.perMinute 
+                });
             }
 
             // ----- 颜色分级逻辑 -----
@@ -544,7 +556,7 @@
                 return parts.join('');
             }
 
-            // ----- 更新所有商品卡片的动态数据（百分比用动画，已赚直接更新）-----
+            // ----- 更新所有商品卡片的动态数据（百分比用800ms动画，已赚直接更新）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -564,7 +576,12 @@
                     // 百分比数字使用动画
                     const percentSpan = card.querySelector('.goal-percent');
                     if (percentSpan) {
-                        animateNumber(percentSpan, percent, { suffix: '%', decimals: 1, isCurrency: false });
+                        animateNumber(percentSpan, percent, { 
+                            suffix: '%', 
+                            decimals: 1, 
+                            isCurrency: false,
+                            duration: ANIMATION_DURATION.percent 
+                        });
                     }
 
                     // 已赚金额直接更新（不加动画，避免频繁动画）
