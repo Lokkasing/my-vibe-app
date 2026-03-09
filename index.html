@@ -122,16 +122,15 @@
             color: #3e3a36;
         }
 
-        /* 合并后的收入行（位于月薪卡片内） */
+        /* 收入行：无外框，仅内联 */
         .income-rate-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f0ece7;  /* 更浅的底色，与卡片融合 */
-            border-radius: 40px;
-            padding: 10px 16px;
-            margin-top: 16px;      /* 与输入框保持间距 */
-            border: 1px solid #e0d7cf;
+            margin: 8px 0 4px;   /* 上下留一点间距 */
+            padding: 0;           /* 无内边距 */
+            background: none;     /* 无背景 */
+            border: none;         /* 无边框 */
         }
         .rate-item {
             flex: 1;
@@ -151,7 +150,7 @@
             color: #4f5d55;
         }
         .rate-separator {
-            color: #cbbfb3;        /* 浅灰色竖线 */
+            color: #cbbfb3;
             font-weight: 300;
             font-size: 18px;
             margin: 0 4px;
@@ -326,16 +325,15 @@
             </div>
         </div>
 
-        <!-- 月薪设置卡片（内部包含每秒/每分钟行） -->
+        <!-- 月薪设置卡片（内部包含每秒/每分钟行，无外框） -->
         <div class="card">
             <div class="section-title">⚙️ 月薪设置</div>
             <div class="input-field">
                 <label>💰 月薪（元）</label>
                 <input type="number" id="monthlySalary" value="28000" min="0" step="1000">
             </div>
-            <p style="font-size:12px; color:#a99f94; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
 
-            <!-- 合并后的收入行，用 | 分隔 -->
+            <!-- 收入行：无外框，直接放在输入框下方 -->
             <div class="income-rate-row">
                 <div class="rate-item">
                     <span class="rate-label">每秒赚</span>
@@ -347,6 +345,9 @@
                     <span class="rate-value" id="perMinute">¥0.00</span>
                 </div>
             </div>
+
+            <!-- 小字放在收入行下方 -->
+            <p style="font-size:12px; color:#a99f94; margin-top:4px;">按月平均到每秒（按30天/月计算）</p>
         </div>
 
         <!-- 攒钱目标模块 -->
