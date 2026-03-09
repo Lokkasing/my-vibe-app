@@ -2,7 +2,6 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <!-- 禁止缩放，保持布局固定 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>剁手计算器 · 多目标版</title>
     <style>
@@ -279,7 +278,7 @@
     <div id="toast">仅支持输入数字</div>
 
     <div class="container" id="app">
-        <h1>剁手计算器 <span>v3.2</span></h1>
+        <h1>剁手计算器 <span>v3.3</span></h1>
 
         <!-- 累计收入 + 起始时间 -->
         <div class="accumulated-row">
@@ -317,7 +316,7 @@
             </div>
         </div>
 
-        <!-- 攒钱目标模块 -->
+        <!-- 攒钱目标模块（移除了忍住按钮） -->
         <div class="card" style="padding-bottom: 10px;">
             <div class="section-title">🎯 攒钱目标</div>
 
@@ -327,11 +326,7 @@
             <!-- 添加商品按钮 -->
             <button class="add-btn" id="addGoalBtn">+ 添加商品</button>
 
-            <!-- 全局忍住按钮 -->
-            <div style="margin-top: 16px;">
-                <button class="btn" id="resistBtn">💪 忍住没买</button>
-                <div class="counter-badge" id="resistCounter" style="margin-top: 10px; text-align: center; font-size:14px; color:#2f3a4c;">今日忍住 0 次</div>
-            </div>
+            <!-- 注：之前这里的“忍住没买”按钮已移除 -->
         </div>
 
         <div class="footnote">所有设置自动保存 · 花钱前看一眼</div>
@@ -345,8 +340,6 @@
             const perMinuteSpan = document.getElementById('perMinute');
             const accumulatedSpan = document.getElementById('accumulatedAmount');
             const startTimeInput = document.getElementById('startTimeInput');
-            const resistBtn = document.getElementById('resistBtn');
-            const resistCounter = document.getElementById('resistCounter');
             const goalListDiv = document.getElementById('goalList');
             const addGoalBtn = document.getElementById('addGoalBtn');
             const toast = document.getElementById('toast');
@@ -358,12 +351,10 @@
             const STORAGE_KEYS = {
                 monthlySalary: 'daoshou_monthlySalary',
                 startTime: 'daoshou_startTime',
-                resistCount: 'daoshou_resistCount',
                 goals: 'daoshou_goals',
             };
 
             // ----- 全局变量 -----
-            let resistCount = 0;
             let timerInterval = null;
             let goals = [];
             let nextId = 100;
@@ -406,8 +397,6 @@
                 }
                 const start = getStartTime();
                 startTimeInput.value = formatDateTimeForInput(start);
-                resistCount = parseInt(localStorage.getItem(STORAGE_KEYS.resistCount)) || 0;
-                updateResistCounter();
 
                 const savedGoals = localStorage.getItem(STORAGE_KEYS.goals);
                 if (savedGoals) {
@@ -428,7 +417,6 @@
 
             function saveSettings() {
                 localStorage.setItem(STORAGE_KEYS.monthlySalary, monthlySalaryInput.value);
-                localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
                 localStorage.setItem(STORAGE_KEYS.goals, JSON.stringify(goals));
                 if (startTimeInput.value) {
                     localStorage.setItem(STORAGE_KEYS.startTime, new Date(startTimeInput.value).toISOString());
@@ -456,7 +444,7 @@
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
                 accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
-                // 更新所有商品卡片的动态数据（不重新渲染整个列表）
+                // 更新所有商品卡片的动态数据
                 updateAllGoalCards(accumulated);
             }
 
@@ -467,15 +455,18 @@
                 perMinuteSpan.innerText = '¥' + (perSecond * 60).toFixed(2);
             }
 
-            // ----- 根据价格获取卡片样式类 -----
-            function getPriceColorClass(price) {
-                if (price < 1000) return 'green';
-                if (price <= 5000) return 'yellow';
-                return 'red';
+            // ----- 根据价格和月薪获取卡片样式类（新分级逻辑）-----
+            function getPriceColorClass(price, monthlySalary) {
+                if (monthlySalary <= 0) return 'green'; // 月薪未设置时默认绿色
+                const ratio = (price / monthlySalary) * 100;
+                if (ratio >= 10) return 'red';
+                if (ratio >= 5) return 'yellow';
+                return 'green';
             }
 
-            // ----- 更新所有商品卡片的进度、金额、工作时间（不重建DOM）-----
+            // ----- 更新所有商品卡片的进度、金额、工作时间、颜色（不重建DOM）-----
             function updateAllGoalCards(accumulated) {
+                const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach((goal, index) => {
                     const card = document.querySelector(`.goal-card[data-id="${goal.id}"]`);
                     if (!card) return;
@@ -505,10 +496,10 @@
                         worktimeSpan.innerText = `⏱️ ${timeStr}`;
                     }
 
-                    // 更新卡片颜色类（价格可能变化）
-                    const colorClass = getPriceColorClass(price);
+                    // 更新卡片颜色类
+                    const colorClass = getPriceColorClass(price, monthlySalary);
                     card.className = `goal-card ${colorClass}`;
-                    card.setAttribute('data-id', goal.id); // 保留data-id
+                    card.setAttribute('data-id', goal.id);
                 });
             }
 
@@ -522,9 +513,10 @@
                 return filtered;
             }
 
-            // ----- 渲染商品列表（首次或增删时调用，不用于每秒更新）-----
+            // ----- 渲染商品列表（首次或增删时调用）-----
             function renderGoals() {
                 const accumulated = getAccumulatedSinceStart();
+                const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 let html = '';
                 goals.forEach(goal => {
                     const price = goal.price || 0;
@@ -533,7 +525,7 @@
                     const h = Math.floor(hours);
                     const m = Math.round((hours - h) * 60);
                     const timeStr = (price === 0) ? '0 小时 0 分钟' : `${h} 小时 ${m} 分钟`;
-                    const colorClass = getPriceColorClass(price);
+                    const colorClass = getPriceColorClass(price, monthlySalary);
 
                     html += `
                         <div class="goal-card ${colorClass}" data-id="${goal.id}">
@@ -563,7 +555,7 @@
                     });
                 });
 
-                // 绑定价格输入事件：实时过滤非法字符并提示
+                // 绑定价格输入事件：实时过滤非法字符并提示；失焦时校验>0
                 document.querySelectorAll('.goal-price').forEach(input => {
                     input.addEventListener('input', function(e) {
                         const rawValue = e.target.value;
@@ -580,9 +572,14 @@
                         if (!goal) return;
 
                         let newPrice = parseFloat(e.target.value);
-                        if (isNaN(newPrice) || e.target.value.trim() === '') {
+                        // 如果输入无效或为0/负数，恢复原价并提示
+                        if (isNaN(newPrice) || e.target.value.trim() === '' || newPrice <= 0) {
                             e.target.value = goal.price;
-                            showToast('仅支持输入数字');
+                            if (newPrice <= 0) {
+                                showToast('价格必须大于0');
+                            } else {
+                                showToast('仅支持输入数字');
+                            }
                             return;
                         }
                         if (newPrice !== goal.price) {
@@ -614,26 +611,19 @@
                 goals.push({
                     id: nextId++,
                     name: '新商品',
-                    price: 1000,
+                    price: 1000,  // 默认价格1000，避免为0
                 });
                 saveSettings();
                 renderGoals();
             }
 
-            // ----- 忍住按钮 -----
-            function updateResistCounter() {
-                resistCounter.innerText = `今日忍住 ${resistCount} 次`;
-            }
-            resistBtn.addEventListener('click', function() {
-                resistCount++;
-                updateResistCounter();
-                saveSettings();
-            });
-
             // ----- 事件绑定（静态元素）-----
             monthlySalaryInput.addEventListener('input', () => {
                 updateRates();
                 updateAccumulated();
+                // 月薪变化会影响颜色，重新渲染（或调用updateAllGoalCards更新颜色）
+                // 直接重新渲染更简单，确保颜色正确
+                renderGoals();
                 saveSettings();
             });
             startTimeInput.addEventListener('input', () => {
