@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>剁手计算器 · 翻页时钟版</title>
+    <title>剁手计算器 · 调试版</title>
     <style>
         * { 
             box-sizing: border-box; 
@@ -137,56 +137,6 @@
             white-space: nowrap;
         }
 
-        /* 翻页数字样式 - 确保可见 */
-        .flip-digit {
-            display: inline-block;
-            position: relative;
-            width: 0.8em;
-            height: 1.2em;
-            line-height: 1.2em;
-            text-align: center;
-            background: transparent;
-            perspective: 200px;
-            vertical-align: baseline;
-        }
-        .flip-digit .digit-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
-            transition: transform 0.5s ease-out;
-        }
-        .flip-digit.flip .digit-wrapper {
-            animation: flip 0.5s ease-out;
-        }
-        @keyframes flip {
-            0% { transform: rotateX(0); }
-            50% { transform: rotateX(-180deg); }
-            100% { transform: rotateX(-360deg); }
-        }
-        .flip-digit .top, .flip-digit .bottom {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            overflow: hidden;
-            background: inherit;
-            backface-visibility: hidden;
-            background-color: transparent;
-            color: inherit;
-        }
-        .flip-digit .top {
-            top: 0;
-            line-height: 1.2em;
-            transform-origin: bottom;
-        }
-        .flip-digit .bottom {
-            bottom: 0;
-            line-height: 0;
-            transform-origin: top;
-            transform: rotateX(180deg);
-        }
-
         .goal-card {
             background: #ffffff;
             border-radius: 20px;
@@ -277,9 +227,6 @@
             color: #6f655b;
             min-width: 48px;
             text-align: right;
-            display: flex;
-            align-items: center;
-            gap: 2px;
         }
         .goal-earned {
             font-size: 13px;
@@ -350,7 +297,7 @@
     <div id="toast">仅支持输入数字</div>
 
     <div class="container" id="app">
-        <h1>剁手计算器</h1>
+        <h1>剁手计算器（调试版）</h1>
 
         <!-- 累计收入 + 起始时间 -->
         <div class="accumulated-row">
@@ -420,41 +367,20 @@
             let goals = [];
             let nextId = 100;
 
-            // ----- 翻页数字更新函数（带后备文本）-----
-            function updateFlipDigits(container, newValue, decimals = 2, isCurrency = true) {
+            // ----- 调试版：直接更新文本，无动画 -----
+            function updateText(container, newValue, decimals = 2, isCurrency = true) {
                 if (!container) {
                     console.error('容器不存在');
                     return;
                 }
-                // 确保 newValue 是有效数字
                 if (typeof newValue !== 'number' || isNaN(newValue)) {
                     newValue = 0;
                 }
-                // 格式化字符串
-                let numStr = newValue.toFixed(decimals);
-                
-                // 1. 后备方案：直接设置文本，保证数字可见
-                container.innerText = numStr;
-                
-                // 2. 尝试构建翻页数字（如果支持）
-                try {
-                    const digits = numStr.split('');
-                    // 清空并重新构建翻页元素
-                    container.innerHTML = '';
-                    digits.forEach((char) => {
-                        const digitEl = document.createElement('span');
-                        digitEl.className = 'flip-digit';
-                        digitEl.innerHTML = `
-                            <span class="digit-wrapper">
-                                <span class="top">${char}</span>
-                                <span class="bottom">${char}</span>
-                            </span>
-                        `;
-                        container.appendChild(digitEl);
-                    });
-                } catch (e) {
-                    console.error('翻页动画构建失败，已使用后备文本', e);
-                    // 如果构建失败，后备文本已经存在，无需额外操作
+                // 直接设置文本，不构建任何复杂结构
+                if (isCurrency) {
+                    container.innerText = newValue.toFixed(decimals);
+                } else {
+                    container.innerText = newValue.toFixed(decimals);
                 }
             }
 
@@ -536,18 +462,18 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示 -----
+            // ----- 更新累计显示（直接文本）-----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
-                updateFlipDigits(accumulatedSpan, accumulated, 2, true);
+                updateText(accumulatedSpan, accumulated, 2, true);
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每分钟显示 -----
+            // ----- 更新每分钟显示（直接文本）-----
             function updatePerMinute() {
                 const perSecond = getPerSecondRate();
                 const perMinute = perSecond * 60;
-                updateFlipDigits(perMinuteSpan, perMinute, 2, true);
+                updateText(perMinuteSpan, perMinute, 2, true);
             }
 
             // ----- 颜色分级逻辑 -----
@@ -574,7 +500,7 @@
                 return parts.join('');
             }
 
-            // ----- 更新所有商品卡片的动态数据（百分比用翻页动画 + 后备）-----
+            // ----- 更新所有商品卡片的动态数据 -----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -591,16 +517,10 @@
                         progress.value = percent;
                     }
 
-                    // 百分比数字使用翻页动画 + 后备
+                    // 百分比数字直接更新文本
                     const percentSpan = card.querySelector('.goal-percent');
                     if (percentSpan) {
-                        const percentContainer = percentSpan.querySelector('.digits-container');
-                        if (percentContainer) {
-                            updateFlipDigits(percentContainer, percent, 1, false);
-                        } else {
-                            // 如果容器不存在，直接设置文本
-                            percentSpan.innerText = percent.toFixed(1) + '%';
-                        }
+                        percentSpan.innerText = percent.toFixed(1) + '%';
                     }
 
                     // 已赚金额直接更新
@@ -653,7 +573,7 @@
                             </div>
                             <div class="goal-progress-row">
                                 <progress value="${percent}" max="100">${percent}%</progress>
-                                <span class="goal-percent"><span class="digits-container"></span>%</span>
+                                <span class="goal-percent">${percent.toFixed(1)}%</span>
                             </div>
                             <div class="goal-earned">已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}</div>
                             <div class="goal-worktime">相当于工作 ${timeStr}</div>
@@ -661,18 +581,6 @@
                     `;
                 });
                 goalListDiv.innerHTML = html;
-
-                // 初始化每个商品卡片的百分比数字
-                document.querySelectorAll('.goal-card').forEach((card, index) => {
-                    const percentSpan = card.querySelector('.goal-percent');
-                    const percentContainer = percentSpan.querySelector('.digits-container');
-                    const percent = goals[index] ? (goals[index].price > 0 ? Math.min(100, (accumulated / goals[index].price) * 100) : 0) : 0;
-                    if (percentContainer) {
-                        updateFlipDigits(percentContainer, percent, 1, false);
-                    } else {
-                        percentSpan.innerText = percent.toFixed(1) + '%';
-                    }
-                });
 
                 // 绑定商品名称输入事件
                 document.querySelectorAll('.goal-name').forEach((input, index) => {
