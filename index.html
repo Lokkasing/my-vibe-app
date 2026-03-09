@@ -32,7 +32,7 @@
         }
         h1 {
             font-size: 26px;
-            font-weight: 600; /* 加粗 */
+            font-weight: 600;
             letter-spacing: 0.02em;
             color: #4a4540;
             margin-bottom: 24px;
@@ -48,7 +48,7 @@
         }
         .section-title {
             font-size: 15px;
-            font-weight: 600; /* 加粗 */
+            font-weight: 600;
             color: #6d6157;
             margin-bottom: 18px;
             display: flex;
@@ -91,7 +91,7 @@
         }
         .accumulated-label {
             font-size: 16px;
-            font-weight: 600; /* 加粗 */
+            font-weight: 600;
             color: #6b5f54;
         }
         .accumulated-value {
@@ -121,30 +121,42 @@
             background: white;
             color: #3e3a36;
         }
-        .rate-row {
+
+        /* 合并后的收入行（位于月薪卡片内） */
+        .income-rate-row {
             display: flex;
-            background: white;
+            align-items: center;
+            justify-content: center;
+            background: #f0ece7;  /* 更浅的底色，与卡片融合 */
             border-radius: 40px;
-            padding: 14px 20px;
-            margin-bottom: 20px;
-            border: 1px solid #ece6de;
+            padding: 10px 16px;
+            margin-top: 16px;      /* 与输入框保持间距 */
+            border: 1px solid #e0d7cf;
         }
         .rate-item {
             flex: 1;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 6px;
+            font-size: 15px;
+            color: #6f655b;
         }
-        .rate-label {
-            font-size: 14px;
-            color: #8c7f72;
+        .rate-item .rate-label {
             font-weight: 400;
+            color: #8f8276;
         }
-        .rate-value {
-            font-size: 20px;
+        .rate-item .rate-value {
             font-weight: 500;
             color: #4f5d55;
         }
+        .rate-separator {
+            color: #cbbfb3;        /* 浅灰色竖线 */
+            font-weight: 300;
+            font-size: 18px;
+            margin: 0 4px;
+        }
+
         .goal-card {
             background: #ffffff;
             border-radius: 20px;
@@ -298,7 +310,7 @@
     <div id="toast">仅支持输入数字</div>
 
     <div class="container" id="app">
-        <h1>剁手计算器</h1>  <!-- 去掉了“日式版” -->
+        <h1>剁手计算器</h1>
 
         <!-- 累计收入 + 起始时间 -->
         <div class="accumulated-row">
@@ -314,7 +326,7 @@
             </div>
         </div>
 
-        <!-- 月薪设置 -->
+        <!-- 月薪设置卡片（内部包含每秒/每分钟行） -->
         <div class="card">
             <div class="section-title">⚙️ 月薪设置</div>
             <div class="input-field">
@@ -322,17 +334,18 @@
                 <input type="number" id="monthlySalary" value="28000" min="0" step="1000">
             </div>
             <p style="font-size:12px; color:#a99f94; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
-        </div>
 
-        <!-- 每秒/每分钟合并行 -->
-        <div class="rate-row">
-            <div class="rate-item">
-                <span class="rate-label">每秒赚</span>
-                <span class="rate-value" id="perSecond">¥0.00</span>
-            </div>
-            <div class="rate-item">
-                <span class="rate-label">每分钟赚</span>
-                <span class="rate-value" id="perMinute">¥0.00</span>
+            <!-- 合并后的收入行，用 | 分隔 -->
+            <div class="income-rate-row">
+                <div class="rate-item">
+                    <span class="rate-label">每秒赚</span>
+                    <span class="rate-value" id="perSecond">¥0.00</span>
+                </div>
+                <span class="rate-separator">|</span>
+                <div class="rate-item">
+                    <span class="rate-label">每分钟赚</span>
+                    <span class="rate-value" id="perMinute">¥0.00</span>
+                </div>
             </div>
         </div>
 
@@ -610,7 +623,7 @@
             monthlySalaryInput.addEventListener('input', () => {
                 updateRates();
                 updateAccumulated();
-                renderGoals();
+                renderGoals();  // 月薪变化影响颜色，重新渲染
                 saveSettings();
             });
             startTimeInput.addEventListener('input', () => {
