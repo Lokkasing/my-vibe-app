@@ -157,7 +157,7 @@
             margin-bottom: 14px;
             align-items: center;
             flex-wrap: wrap;
-            padding-right: 30px; /* 为右侧删除按钮留出空间 */
+            padding-right: 30px;
             position: relative;
         }
         .goal-header input {
@@ -181,7 +181,7 @@
             font-size: 22px;
             color: #bfb2a4;
             cursor: pointer;
-            padding: 8px 8px 8px 12px; /* 扩大点击区域 */
+            padding: 8px 8px 8px 12px;
             line-height: 1;
             transition: color 0.2s;
         }
@@ -348,6 +348,7 @@
 
             // ----- 常量 -----
             const SECONDS_PER_MONTH = 30 * 24 * 3600;
+            const ANIMATION_DURATION = 800; // 动画时长 ms
 
             // ----- 本地存储键名 -----
             const STORAGE_KEYS = {
@@ -359,6 +360,73 @@
             let timerInterval = null;
             let goals = [];
             let nextId = 100;
+
+            // 存储每个元素的动画取消函数
+            const animations = new Map();
+
+            // ----- 动画函数：平滑过渡数字 -----
+            function animateNumber(element, newValue, options = {}) {
+                const {
+                    duration = ANIMATION_DURATION,
+                    suffix = '',
+                    decimals = 2,
+                    isCurrency = true,
+                } = options;
+
+                // 如果已经存在该元素的动画，先取消
+                if (animations.has(element)) {
+                    cancelAnimationFrame(animations.get(element));
+                    animations.delete(element);
+                }
+
+                // 获取当前显示值（从文本解析）
+                let currentText = element.innerText;
+                // 去掉非数字字符（保留负号、小数点、数字）
+                let currentValue = parseFloat(currentText.replace(/[^0-9.-]/g, '')) || 0;
+                if (isNaN(currentValue)) currentValue = 0;
+
+                const startValue = currentValue;
+                const diff = newValue - startValue;
+                if (Math.abs(diff) < 0.001) {
+                    // 无变化，直接设置
+                    if (isCurrency) {
+                        element.innerText = '¥' + newValue.toFixed(decimals);
+                    } else {
+                        element.innerText = newValue.toFixed(decimals) + suffix;
+                    }
+                    return;
+                }
+
+                const startTime = performance.now();
+
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    let progress = Math.min(elapsed / duration, 1);
+                    // easeOutExpo 缓动
+                    progress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                    const currentVal = startValue + diff * progress;
+
+                    if (isCurrency) {
+                        element.innerText = '¥' + currentVal.toFixed(decimals);
+                    } else {
+                        element.innerText = currentVal.toFixed(decimals) + suffix;
+                    }
+
+                    if (elapsed < duration) {
+                        animations.set(element, requestAnimationFrame(animate));
+                    } else {
+                        // 动画结束，确保最终值准确
+                        if (isCurrency) {
+                            element.innerText = '¥' + newValue.toFixed(decimals);
+                        } else {
+                            element.innerText = newValue.toFixed(decimals) + suffix;
+                        }
+                        animations.delete(element);
+                    }
+                };
+
+                animations.set(element, requestAnimationFrame(animate));
+            }
 
             // ----- 辅助函数 -----
             function showToast(message) {
@@ -438,17 +506,18 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示 -----
+            // ----- 更新累计显示（使用动画）-----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
-                accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
+                animateNumber(accumulatedSpan, accumulated, { isCurrency: true, decimals: 2 });
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每分钟显示 -----
+            // ----- 更新每分钟显示（使用动画）-----
             function updatePerMinute() {
                 const perSecond = getPerSecondRate();
-                perMinuteSpan.innerText = '¥' + (perSecond * 60).toFixed(2);
+                const perMinute = perSecond * 60;
+                animateNumber(perMinuteSpan, perMinute, { isCurrency: true, decimals: 2 });
             }
 
             // ----- 颜色分级逻辑 -----
@@ -475,7 +544,7 @@
                 return parts.join('');
             }
 
-            // ----- 更新所有商品卡片的动态数据（不重建DOM）-----
+            // ----- 更新所有商品卡片的动态数据（百分比用动画，已赚直接更新）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -486,22 +555,31 @@
                     const totalHours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
                     const timeStr = formatWorkTime(totalHours);
 
+                    // 更新进度条值（不需要动画）
                     const progress = card.querySelector('progress');
                     if (progress) {
                         progress.value = percent;
-                        progress.nextElementSibling.innerText = percent.toFixed(1) + '%';
                     }
 
+                    // 百分比数字使用动画
+                    const percentSpan = card.querySelector('.goal-percent');
+                    if (percentSpan) {
+                        animateNumber(percentSpan, percent, { suffix: '%', decimals: 1, isCurrency: false });
+                    }
+
+                    // 已赚金额直接更新（不加动画，避免频繁动画）
                     const earnedSpan = card.querySelector('.goal-earned');
                     if (earnedSpan) {
                         earnedSpan.innerText = `已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}`;
                     }
 
+                    // 工作时间文本
                     const worktimeSpan = card.querySelector('.goal-worktime');
                     if (worktimeSpan) {
                         worktimeSpan.innerText = `相当于工作 ${timeStr}`;
                     }
 
+                    // 更新颜色类
                     const colorClass = getPriceColorClass(price, monthlySalary);
                     card.className = `goal-card ${colorClass}`;
                     card.setAttribute('data-id', goal.id);
@@ -585,7 +663,7 @@
                         if (newPrice !== goal.price) {
                             goal.price = newPrice;
                             saveSettings();
-                            renderGoals();
+                            renderGoals(); // 重新渲染以更新颜色和时间
                         }
                     });
                 });
@@ -647,6 +725,8 @@
 
             window.addEventListener('beforeunload', function() {
                 if (timerInterval) clearInterval(timerInterval);
+                // 取消所有动画
+                animations.forEach((rafId) => cancelAnimationFrame(rafId));
             });
 
             window.deleteGoal = deleteGoal;
