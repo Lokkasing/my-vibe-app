@@ -312,7 +312,7 @@
             <div class="section-title">⚙️ 月薪设置</div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px;">
                 <label style="font-size:13px; font-weight:400; color:#7b6f64; white-space: nowrap;">💰 月薪（元）</label>
-                <input type="number" id="monthlySalary" value="28000" min="0" step="1000"
+                <input type="text" id="monthlySalary" inputmode="numeric" value="28000"
                        style="flex: 1; min-width: 140px; padding: 12px 16px; font-size:15px; border:1px solid #dbd3c9; border-radius:40px; background:white; outline:none;">
             </div>
 
@@ -361,6 +361,9 @@
             let goals = [];
             let nextId = 100;
 
+            // 保存月薪有效值，用于失焦恢复
+            let lastValidMonthlySalary = 28000;
+
             // ----- 辅助函数 -----
             function showToast(message) {
                 toast.innerText = message;
@@ -368,6 +371,16 @@
                 setTimeout(() => {
                     toast.classList.remove('show');
                 }, 2000);
+            }
+
+            // 过滤数字输入（只允许数字和小数点，最多一个小数点）
+            function filterNumberInput(value) {
+                let filtered = value.replace(/[^\d.]/g, '');
+                const parts = filtered.split('.');
+                if (parts.length > 2) {
+                    filtered = parts[0] + '.' + parts.slice(1).join('');
+                }
+                return filtered;
             }
 
             function formatDateTimeForInput(date) {
@@ -391,8 +404,11 @@
             }
 
             function loadSettings() {
+                // 月薪
                 if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) {
-                    monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
+                    const saved = localStorage.getItem(STORAGE_KEYS.monthlySalary);
+                    monthlySalaryInput.value = saved;
+                    lastValidMonthlySalary = parseFloat(saved) || 28000;
                 }
                 const start = getStartTime();
                 startTimeInput.value = formatDateTimeForInput(start);
@@ -422,7 +438,7 @@
                 }
             }
 
-            // ----- 计算每秒收入 -----
+            // ----- 计算每秒收入（基于月薪）-----
             function getPerSecondRate() {
                 const monthly = parseFloat(monthlySalaryInput.value) || 0;
                 return monthly / SECONDS_PER_MONTH;
@@ -439,14 +455,14 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示（直接文本）-----
+            // ----- 更新累计显示 -----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
                 accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每分钟显示（直接文本）-----
+            // ----- 更新每分钟显示 -----
             function updatePerMinute() {
                 const perSecond = getPerSecondRate();
                 const perMinute = perSecond * 60;
@@ -488,45 +504,30 @@
                     const totalHours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
                     const timeStr = formatWorkTime(totalHours);
 
-                    // 更新进度条值
                     const progress = card.querySelector('progress');
                     if (progress) {
                         progress.value = percent;
                     }
 
-                    // 百分比数字
                     const percentSpan = card.querySelector('.goal-percent');
                     if (percentSpan) {
                         percentSpan.innerText = percent.toFixed(1) + '%';
                     }
 
-                    // 已赚金额
                     const earnedSpan = card.querySelector('.goal-earned');
                     if (earnedSpan) {
                         earnedSpan.innerText = `已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}`;
                     }
 
-                    // 工作时间文本
                     const worktimeSpan = card.querySelector('.goal-worktime');
                     if (worktimeSpan) {
                         worktimeSpan.innerText = `相当于工作 ${timeStr}`;
                     }
 
-                    // 更新颜色类
                     const colorClass = getPriceColorClass(price, monthlySalary);
                     card.className = `goal-card ${colorClass}`;
                     card.setAttribute('data-id', goal.id);
                 });
-            }
-
-            // ----- 过滤价格输入（只允许数字和小数点）-----
-            function filterPriceInput(value) {
-                let filtered = value.replace(/[^\d.]/g, '');
-                const parts = filtered.split('.');
-                if (parts.length > 2) {
-                    filtered = parts[0] + '.' + parts.slice(1).join('');
-                }
-                return filtered;
             }
 
             // ----- 渲染商品列表（首次或增删时调用）-----
@@ -567,11 +568,11 @@
                     });
                 });
 
-                // 绑定价格输入事件
+                // 绑定商品价格输入事件（实时过滤 + 失焦校验）
                 document.querySelectorAll('.goal-price').forEach(input => {
                     input.addEventListener('input', function(e) {
                         const rawValue = e.target.value;
-                        const filtered = filterPriceInput(rawValue);
+                        const filtered = filterNumberInput(rawValue);
                         if (filtered !== rawValue) {
                             e.target.value = filtered;
                             showToast('仅支持输入数字');
@@ -602,6 +603,44 @@
                 });
             }
 
+            // 月薪输入框的事件处理
+            monthlySalaryInput.addEventListener('input', function(e) {
+                const rawValue = e.target.value;
+                const filtered = filterNumberInput(rawValue);
+                if (filtered !== rawValue) {
+                    e.target.value = filtered;
+                    showToast('仅支持输入数字');
+                }
+                // 实时更新显示
+                updatePerMinute();
+                updateAccumulated();
+                renderGoals();
+                saveSettings();
+            });
+
+            monthlySalaryInput.addEventListener('blur', function(e) {
+                let newValue = parseFloat(e.target.value);
+                if (isNaN(newValue) || e.target.value.trim() === '' || newValue <= 0) {
+                    // 恢复上次有效值
+                    e.target.value = lastValidMonthlySalary;
+                    if (newValue <= 0) {
+                        showToast('月薪必须大于0');
+                    } else {
+                        showToast('仅支持输入数字');
+                    }
+                    // 重新计算并保存（恢复后需要触发更新）
+                    updatePerMinute();
+                    updateAccumulated();
+                    renderGoals();
+                    saveSettings();
+                } else {
+                    // 有效值，更新 lastValid
+                    lastValidMonthlySalary = newValue;
+                    // 确保保存
+                    saveSettings();
+                }
+            });
+
             function escapeHtml(unsafe) {
                 return unsafe.replace(/[&<>"]/g, function(m) {
                     if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
@@ -627,13 +666,7 @@
                 renderGoals();
             }
 
-            // ----- 事件绑定 -----
-            monthlySalaryInput.addEventListener('input', () => {
-                updatePerMinute();
-                updateAccumulated();
-                renderGoals();
-                saveSettings();
-            });
+            // ----- 事件绑定（起始时间）-----
             startTimeInput.addEventListener('input', () => {
                 updateAccumulated();
                 saveSettings();
