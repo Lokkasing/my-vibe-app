@@ -357,7 +357,7 @@
             <div style="display: flex; flex-direction: column; width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="accumulated-label">⏳ 累计收入</span>
-                    <span class="accumulated-value" id="accumulatedAmount"><span>¥</span><span class="digits-container"></span></span>
+                    <span class="accumulated-value" id="accumulatedAmount"><span>¥</span><span class="digits-container" style="display: inline-block;"></span></span>
                 </div>
                 <div class="start-time-row">
                     <label>📅 从</label>
@@ -379,7 +379,7 @@
             <div class="income-rate-row">
                 <div class="rate-item">
                     <span class="rate-label">每分钟赚</span>
-                    <span class="rate-value" id="perMinute"><span>¥</span><span class="digits-container"></span></span>
+                    <span class="rate-value" id="perMinute"><span>¥</span><span class="digits-container" style="display: inline-block;"></span></span>
                 </div>
                 <span class="rate-hint">按月平均到每秒 (30天/月)</span>
             </div>
@@ -420,23 +420,26 @@
             let goals = [];
             let nextId = 100;
 
-            // ----- 翻页数字更新函数（修复版）-----
+            // ----- 翻页数字更新函数（带后备文本）-----
             function updateFlipDigits(container, newValue, decimals = 2, isCurrency = true) {
-                if (!container) return;
+                if (!container) {
+                    console.error('容器不存在');
+                    return;
+                }
                 // 确保 newValue 是有效数字
                 if (typeof newValue !== 'number' || isNaN(newValue)) {
                     newValue = 0;
                 }
-                // 格式化为字符串，包含小数点
+                // 格式化字符串
                 let numStr = newValue.toFixed(decimals);
-                // 如果 isCurrency 为 true，强制保留两位小数（已经是这样）
-                const digits = numStr.split('');
-
-                // 获取当前已有的数字元素
-                const existingDigits = Array.from(container.children).filter(child => child.classList.contains('flip-digit'));
-
-                if (existingDigits.length !== digits.length) {
-                    // 长度不同，完全重建
+                
+                // 1. 后备方案：直接设置文本，保证数字可见
+                container.innerText = numStr;
+                
+                // 2. 尝试构建翻页数字（如果支持）
+                try {
+                    const digits = numStr.split('');
+                    // 清空并重新构建翻页元素
                     container.innerHTML = '';
                     digits.forEach((char) => {
                         const digitEl = document.createElement('span');
@@ -449,26 +452,9 @@
                         `;
                         container.appendChild(digitEl);
                     });
-                } else {
-                    // 长度相同，逐位比较并触发动画
-                    digits.forEach((char, index) => {
-                        const digitEl = existingDigits[index];
-                        const top = digitEl.querySelector('.top');
-                        const bottom = digitEl.querySelector('.bottom');
-                        if (!top || !bottom) return;
-
-                        const oldChar = top.textContent;
-                        if (oldChar !== char) {
-                            // 触发翻页动画
-                            digitEl.classList.add('flip');
-                            setTimeout(() => {
-                                digitEl.classList.remove('flip');
-                            }, 500);
-                            // 更新数字
-                            top.textContent = char;
-                            bottom.textContent = char;
-                        }
-                    });
+                } catch (e) {
+                    console.error('翻页动画构建失败，已使用后备文本', e);
+                    // 如果构建失败，后备文本已经存在，无需额外操作
                 }
             }
 
@@ -550,14 +536,14 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示（使用翻页动画）-----
+            // ----- 更新累计显示 -----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
                 updateFlipDigits(accumulatedSpan, accumulated, 2, true);
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每分钟显示（使用翻页动画）-----
+            // ----- 更新每分钟显示 -----
             function updatePerMinute() {
                 const perSecond = getPerSecondRate();
                 const perMinute = perSecond * 60;
@@ -588,7 +574,7 @@
                 return parts.join('');
             }
 
-            // ----- 更新所有商品卡片的动态数据（百分比用翻页动画）-----
+            // ----- 更新所有商品卡片的动态数据（百分比用翻页动画 + 后备）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -605,12 +591,15 @@
                         progress.value = percent;
                     }
 
-                    // 百分比数字使用翻页动画
+                    // 百分比数字使用翻页动画 + 后备
                     const percentSpan = card.querySelector('.goal-percent');
                     if (percentSpan) {
                         const percentContainer = percentSpan.querySelector('.digits-container');
                         if (percentContainer) {
                             updateFlipDigits(percentContainer, percent, 1, false);
+                        } else {
+                            // 如果容器不存在，直接设置文本
+                            percentSpan.innerText = percent.toFixed(1) + '%';
                         }
                     }
 
@@ -680,6 +669,8 @@
                     const percent = goals[index] ? (goals[index].price > 0 ? Math.min(100, (accumulated / goals[index].price) * 100) : 0) : 0;
                     if (percentContainer) {
                         updateFlipDigits(percentContainer, percent, 1, false);
+                    } else {
+                        percentSpan.innerText = percent.toFixed(1) + '%';
                     }
                 });
 
