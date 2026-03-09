@@ -56,29 +56,6 @@
             gap: 6px;
             letter-spacing: 0.3px;
         }
-        .input-field {
-            margin-bottom: 16px;
-        }
-        .input-field label {
-            display: block;
-            font-size: 13px;
-            font-weight: 400;
-            color: #7b6f64;
-            margin-bottom: 6px;
-        }
-        .input-field input {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 15px;
-            border: 1px solid #dbd3c9;
-            border-radius: 40px;
-            background: white;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-        .input-field input:focus {
-            border-color: #b7aa9c;
-        }
         .accumulated-row {
             background: #f5f2ed;
             border-radius: 40px;
@@ -122,21 +99,20 @@
             color: #3e3a36;
         }
 
-        /* 收入行：无外框，仅内联 */
+        /* 收入行：只保留每分钟赚 */
         .income-rate-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 8px 0 4px;   /* 上下留一点间距 */
-            padding: 0;           /* 无内边距 */
-            background: none;     /* 无背景 */
-            border: none;         /* 无边框 */
+            justify-content: flex-start; /* 左对齐，更自然 */
+            margin: 8px 0 4px;
+            padding: 0;
+            background: none;
+            border: none;
+            gap: 6px;
         }
         .rate-item {
-            flex: 1;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 6px;
             font-size: 15px;
             color: #6f655b;
@@ -149,11 +125,13 @@
             font-weight: 500;
             color: #4f5d55;
         }
-        .rate-separator {
-            color: #cbbfb3;
-            font-weight: 300;
-            font-size: 18px;
-            margin: 0 4px;
+        /* 提示小字 */
+        .rate-hint {
+            font-size: 11px;        /* 小字号不抢戏 */
+            color: #b0a69b;
+            font-weight: 400;
+            white-space: nowrap;
+            margin-left: 4px;
         }
 
         .goal-card {
@@ -163,6 +141,7 @@
             margin-bottom: 16px;
             border: 1px solid #e9e2d9;
             transition: background 0.1s;
+            position: relative; /* 便于内部定位，但不用绝对定位，用flex */
         }
         .goal-card.green {
             background-color: #f6f9f4;
@@ -194,18 +173,6 @@
         }
         .goal-header input:focus {
             border-color: #b7aa9c;
-        }
-        .delete-btn {
-            background: none;
-            border: none;
-            font-size: 22px;
-            color: #bfb2a4;
-            cursor: pointer;
-            padding: 0 6px;
-            line-height: 1;
-        }
-        .delete-btn:hover {
-            color: #a28e7c;
         }
         .goal-progress-row {
             display: flex;
@@ -258,6 +225,27 @@
             border-radius: 30px;
             display: inline-block;
         }
+        /* 卡片底部：删除按钮右对齐 */
+        .card-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            font-size: 13px;
+            color: #bfb2a4;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover {
+            background: #e8e0d8;
+            color: #a28e7c;
+        }
+
         .add-btn {
             background: #ffffff;
             border: 1px dashed #cbc1b5;
@@ -325,29 +313,24 @@
             </div>
         </div>
 
-        <!-- 月薪设置卡片（移除小字） -->
+        <!-- 月薪设置卡片 -->
         <div class="card">
             <div class="section-title">⚙️ 月薪设置</div>
 
-            <!-- 月薪输入行：只有标签和输入框 -->
+            <!-- 月薪输入行 -->
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px;">
                 <label style="font-size:13px; font-weight:400; color:#7b6f64; white-space: nowrap;">💰 月薪（元）</label>
                 <input type="number" id="monthlySalary" value="28000" min="0" step="1000"
                        style="flex: 1; min-width: 140px; padding: 12px 16px; font-size:15px; border:1px solid #dbd3c9; border-radius:40px; background:white; outline:none;">
-                <!-- 说明文字已移除 -->
             </div>
 
-            <!-- 收入行：无外框 -->
+            <!-- 收入行：只有每分钟赚 + 小字 -->
             <div class="income-rate-row">
-                <div class="rate-item">
-                    <span class="rate-label">每秒赚</span>
-                    <span class="rate-value" id="perSecond">¥0.00</span>
-                </div>
-                <span class="rate-separator">|</span>
                 <div class="rate-item">
                     <span class="rate-label">每分钟赚</span>
                     <span class="rate-value" id="perMinute">¥0.00</span>
                 </div>
+                <span class="rate-hint">按月平均到每秒 (30天/月)</span>
             </div>
         </div>
 
@@ -365,7 +348,6 @@
         (function() {
             // ----- DOM 元素 -----
             const monthlySalaryInput = document.getElementById('monthlySalary');
-            const perSecondSpan = document.getElementById('perSecond');
             const perMinuteSpan = document.getElementById('perMinute');
             const accumulatedSpan = document.getElementById('accumulatedAmount');
             const startTimeInput = document.getElementById('startTimeInput');
@@ -387,6 +369,7 @@
             let goals = [];
             let nextId = 100;
 
+            // ----- 辅助函数 -----
             function showToast(message) {
                 toast.innerText = message;
                 toast.classList.add('show');
@@ -447,11 +430,13 @@
                 }
             }
 
+            // ----- 计算每秒收入（元/秒）-----
             function getPerSecondRate() {
                 const monthly = parseFloat(monthlySalaryInput.value) || 0;
                 return monthly / SECONDS_PER_MONTH;
             }
 
+            // ----- 计算累计收入 -----
             function getAccumulatedSinceStart() {
                 const startTimeStr = startTimeInput.value;
                 if (!startTimeStr) return 0;
@@ -462,18 +447,20 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
+            // ----- 更新累计显示 -----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
                 accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
                 updateAllGoalCards(accumulated);
             }
 
-            function updateRates() {
+            // ----- 更新每分钟显示 -----
+            function updatePerMinute() {
                 const perSecond = getPerSecondRate();
-                perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
                 perMinuteSpan.innerText = '¥' + (perSecond * 60).toFixed(2);
             }
 
+            // ----- 颜色分级逻辑 -----
             function getPriceColorClass(price, monthlySalary) {
                 if (monthlySalary <= 0) return 'green';
                 const ratio = (price / monthlySalary) * 100;
@@ -482,6 +469,23 @@
                 return 'green';
             }
 
+            // ----- 格式化工作时间（天/小时/分钟）-----
+            function formatWorkTime(totalHours) {
+                if (totalHours <= 0) return '0分钟';
+                const days = Math.floor(totalHours / 24);
+                const hours = Math.floor(totalHours % 24);
+                const minutes = Math.round((totalHours - Math.floor(totalHours)) * 60);
+
+                let parts = [];
+                if (days > 0) parts.push(days + '天');
+                if (hours > 0) parts.push(hours + '小时');
+                if (minutes > 0) parts.push(minutes + '分钟');
+                if (parts.length === 0) return '0分钟'; // 以防万一
+
+                return parts.join('');
+            }
+
+            // ----- 更新所有商品卡片的动态数据（不重建DOM）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -489,33 +493,36 @@
                     if (!card) return;
                     const price = goal.price || 0;
                     const percent = price > 0 ? Math.min(100, (accumulated / price) * 100) : 0;
-                    const hours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
-                    const h = Math.floor(hours);
-                    const m = Math.round((hours - h) * 60);
-                    const timeStr = (price === 0) ? '0 小时 0 分钟' : `${h} 小时 ${m} 分钟`;
+                    const totalHours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
+                    const timeStr = formatWorkTime(totalHours);
 
+                    // 更新进度条和百分比
                     const progress = card.querySelector('progress');
                     if (progress) {
                         progress.value = percent;
                         progress.nextElementSibling.innerText = percent.toFixed(1) + '%';
                     }
 
+                    // 更新已赚/目标金额
                     const statsSpan = card.querySelector('.goal-stats span:first-child');
                     if (statsSpan) {
                         statsSpan.innerText = `已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}`;
                     }
 
+                    // 更新时间文本
                     const worktimeSpan = card.querySelector('.goal-worktime');
                     if (worktimeSpan) {
-                        worktimeSpan.innerText = `⏱️ ${timeStr}`;
+                        worktimeSpan.innerText = `还需工作 ${timeStr}`;
                     }
 
+                    // 更新颜色类
                     const colorClass = getPriceColorClass(price, monthlySalary);
                     card.className = `goal-card ${colorClass}`;
                     card.setAttribute('data-id', goal.id);
                 });
             }
 
+            // ----- 过滤价格输入（只允许数字和小数点）-----
             function filterPriceInput(value) {
                 let filtered = value.replace(/[^\d.]/g, '');
                 const parts = filtered.split('.');
@@ -525,6 +532,7 @@
                 return filtered;
             }
 
+            // ----- 渲染商品列表（首次或增删时调用）-----
             function renderGoals() {
                 const accumulated = getAccumulatedSinceStart();
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
@@ -532,10 +540,8 @@
                 goals.forEach(goal => {
                     const price = goal.price || 0;
                     const percent = price > 0 ? Math.min(100, (accumulated / price) * 100) : 0;
-                    const hours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
-                    const h = Math.floor(hours);
-                    const m = Math.round((hours - h) * 60);
-                    const timeStr = (price === 0) ? '0 小时 0 分钟' : `${h} 小时 ${m} 分钟`;
+                    const totalHours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
+                    const timeStr = formatWorkTime(totalHours);
                     const colorClass = getPriceColorClass(price, monthlySalary);
 
                     html += `
@@ -543,7 +549,6 @@
                             <div class="goal-header">
                                 <input type="text" class="goal-name" value="${escapeHtml(goal.name)}" placeholder="商品名称">
                                 <input type="text" class="goal-price" value="${price}" inputmode="numeric" data-id="${goal.id}" placeholder="价格">
-                                <button class="delete-btn" onclick="deleteGoal(${goal.id})">✕</button>
                             </div>
                             <div class="goal-progress-row">
                                 <progress value="${percent}" max="100">${percent}%</progress>
@@ -551,13 +556,17 @@
                             </div>
                             <div class="goal-stats">
                                 <span>已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}</span>
-                                <span class="goal-worktime">⏱️ ${timeStr}</span>
+                                <span class="goal-worktime">还需工作 ${timeStr}</span>
+                            </div>
+                            <div class="card-footer">
+                                <button class="delete-btn" onclick="deleteGoal(${goal.id})">删除</button>
                             </div>
                         </div>
                     `;
                 });
                 goalListDiv.innerHTML = html;
 
+                // 绑定商品名称输入事件
                 document.querySelectorAll('.goal-name').forEach((input, index) => {
                     input.addEventListener('input', (e) => {
                         goals[index].name = e.target.value;
@@ -565,6 +574,7 @@
                     });
                 });
 
+                // 绑定价格输入事件
                 document.querySelectorAll('.goal-price').forEach(input => {
                     input.addEventListener('input', function(e) {
                         const rawValue = e.target.value;
@@ -593,7 +603,7 @@
                         if (newPrice !== goal.price) {
                             goal.price = newPrice;
                             saveSettings();
-                            renderGoals();
+                            renderGoals();  // 重新渲染以更新颜色和时间
                         }
                     });
                 });
@@ -606,12 +616,14 @@
                 });
             }
 
+            // ----- 删除商品 -----
             window.deleteGoal = function(id) {
                 goals = goals.filter(g => g.id !== id);
                 saveSettings();
                 renderGoals();
             };
 
+            // ----- 添加商品 -----
             function addGoal() {
                 goals.push({
                     id: nextId++,
@@ -622,10 +634,11 @@
                 renderGoals();
             }
 
+            // ----- 事件绑定（静态元素）-----
             monthlySalaryInput.addEventListener('input', () => {
-                updateRates();
+                updatePerMinute();
                 updateAccumulated();
-                renderGoals();  // 月薪变化影响颜色，重新渲染
+                renderGoals();  // 月薪变化影响颜色和时间，重新渲染
                 saveSettings();
             });
             startTimeInput.addEventListener('input', () => {
@@ -634,6 +647,7 @@
             });
             addGoalBtn.addEventListener('click', addGoal);
 
+            // ----- 定时器每秒更新累计收入，但不重新渲染列表 -----
             function startTimer() {
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(() => {
@@ -641,9 +655,10 @@
                 }, 1000);
             }
 
+            // ----- 初始化 -----
             window.addEventListener('load', function() {
                 loadSettings();
-                updateRates();
+                updatePerMinute();
                 updateAccumulated();
                 startTimer();
             });
