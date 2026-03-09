@@ -137,7 +137,7 @@
             white-space: nowrap;
         }
 
-        /* 翻页数字样式 */
+        /* 翻页数字样式 - 确保可见 */
         .flip-digit {
             display: inline-block;
             position: relative;
@@ -147,6 +147,7 @@
             text-align: center;
             background: transparent;
             perspective: 200px;
+            vertical-align: baseline;
         }
         .flip-digit .digit-wrapper {
             position: relative;
@@ -165,12 +166,14 @@
         }
         .flip-digit .top, .flip-digit .bottom {
             position: absolute;
+            left: 0;
             width: 100%;
             height: 50%;
             overflow: hidden;
             background: inherit;
             backface-visibility: hidden;
             background-color: transparent;
+            color: inherit;
         }
         .flip-digit .top {
             top: 0;
@@ -182,10 +185,6 @@
             line-height: 0;
             transform-origin: top;
             transform: rotateX(180deg);
-        }
-        /* 隐藏原数字 */
-        .digit-hidden {
-            display: none;
         }
 
         .goal-card {
@@ -421,28 +420,25 @@
             let goals = [];
             let nextId = 100;
 
-            // 存储每个数字容器的当前数字字符串（用于比较）
-            const digitContainers = new Map(); // key: element, value: { lastValue: string }
-
-            // ----- 翻页数字更新函数 -----
+            // ----- 翻页数字更新函数（修复版）-----
             function updateFlipDigits(container, newValue, decimals = 2, isCurrency = true) {
-                // 格式化数字为字符串（包括小数点）
-                let numStr = newValue.toFixed(decimals);
-                if (isCurrency) {
-                    // 货币格式：保留两位小数
-                    numStr = newValue.toFixed(2);
+                if (!container) return;
+                // 确保 newValue 是有效数字
+                if (typeof newValue !== 'number' || isNaN(newValue)) {
+                    newValue = 0;
                 }
+                // 格式化为字符串，包含小数点
+                let numStr = newValue.toFixed(decimals);
+                // 如果 isCurrency 为 true，强制保留两位小数（已经是这样）
                 const digits = numStr.split('');
 
-                // 获取当前显示的数字数组（从容器中的子元素）
+                // 获取当前已有的数字元素
                 const existingDigits = Array.from(container.children).filter(child => child.classList.contains('flip-digit'));
-                const oldDigits = existingDigits.map(d => d.querySelector('.top')?.textContent || '0');
 
-                // 如果长度不同，重新构建整个容器（简化处理）
                 if (existingDigits.length !== digits.length) {
-                    // 完全重建
+                    // 长度不同，完全重建
                     container.innerHTML = '';
-                    digits.forEach((char, index) => {
+                    digits.forEach((char) => {
                         const digitEl = document.createElement('span');
                         digitEl.className = 'flip-digit';
                         digitEl.innerHTML = `
@@ -454,20 +450,23 @@
                         container.appendChild(digitEl);
                     });
                 } else {
-                    // 逐位比较，触发翻转
+                    // 长度相同，逐位比较并触发动画
                     digits.forEach((char, index) => {
                         const digitEl = existingDigits[index];
-                        if (oldDigits[index] !== char) {
-                            // 触发翻转动画
+                        const top = digitEl.querySelector('.top');
+                        const bottom = digitEl.querySelector('.bottom');
+                        if (!top || !bottom) return;
+
+                        const oldChar = top.textContent;
+                        if (oldChar !== char) {
+                            // 触发翻页动画
                             digitEl.classList.add('flip');
                             setTimeout(() => {
                                 digitEl.classList.remove('flip');
                             }, 500);
-                            // 更新上下文字
-                            const top = digitEl.querySelector('.top');
-                            const bottom = digitEl.querySelector('.bottom');
-                            if (top) top.textContent = char;
-                            if (bottom) bottom.textContent = char;
+                            // 更新数字
+                            top.textContent = char;
+                            bottom.textContent = char;
                         }
                     });
                 }
@@ -612,12 +611,10 @@
                         const percentContainer = percentSpan.querySelector('.digits-container');
                         if (percentContainer) {
                             updateFlipDigits(percentContainer, percent, 1, false);
-                        } else {
-                            // 兼容旧结构，但实际上我们会创建
                         }
                     }
 
-                    // 已赚金额直接更新（不加动画，避免复杂）
+                    // 已赚金额直接更新
                     const earnedSpan = card.querySelector('.goal-earned');
                     if (earnedSpan) {
                         earnedSpan.innerText = `已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}`;
@@ -676,7 +673,7 @@
                 });
                 goalListDiv.innerHTML = html;
 
-                // 初始化每个商品卡片的百分比容器
+                // 初始化每个商品卡片的百分比数字
                 document.querySelectorAll('.goal-card').forEach((card, index) => {
                     const percentSpan = card.querySelector('.goal-percent');
                     const percentContainer = percentSpan.querySelector('.digits-container');
@@ -778,6 +775,7 @@
             // ----- 初始化 -----
             window.addEventListener('load', function() {
                 loadSettings();
+                // 确保初始数字显示
                 updatePerMinute();
                 updateAccumulated();
                 startTimer();
