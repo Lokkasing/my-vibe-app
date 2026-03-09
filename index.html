@@ -1,75 +1,606 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Coding Station</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>剁手计算器 · 花前算一算</title>
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
-            height: 100vh;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            justify-content: center;
+            padding: 16px;
+            margin: 0;
         }
-        .card { 
-            background: rgba(255, 255, 255, 0.1); 
-            padding: 30px; 
-            border-radius: 25px; 
-            backdrop-filter: blur(15px);
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.06);
+            padding: 24px 20px 32px;
+            transition: all 0.2s ease;
+        }
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #1a1e2b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        h1 span {
+            background: #fee9e7;
+            color: #e35f5a;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 40px;
+            letter-spacing: 0;
+        }
+        .card {
+            background: #f8fafd;
+            border-radius: 24px;
+            padding: 20px 16px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2f3a4c;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .section-title svg {
+            opacity: 0.7;
+        }
+        .income-type {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .income-type label {
+            flex: 1;
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 60px;
+            padding: 10px 0;
             text-align: center;
-            width: 80%;
-            max-width: 350px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+            color: #4a5a6e;
+            transition: all 0.2s;
+            cursor: pointer;
         }
-        h1 { font-size: 1.5rem; margin-bottom: 20px; color: #00ffff; }
-        #coord { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; color: #ffffff; }
-        #weather { font-size: 3rem; font-weight: bold; margin: 10px 0; }
-        #time { font-size: 1rem; opacity: 0.8; font-family: monospace; }
+        .income-type input[type="radio"] {
+            display: none;
+        }
+        .income-type input[type="radio"]:checked + label {
+            border-color: #e35f5a;
+            background: #fff4f3;
+            color: #c74b46;
+            font-weight: 600;
+        }
+        .input-field {
+            margin-bottom: 16px;
+        }
+        .input-field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #5f6c84;
+            margin-bottom: 6px;
+        }
+        .input-field input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            background: white;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .input-field input:focus {
+            border-color: #e35f5a;
+        }
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .stat-row {
+            background: white;
+            border-radius: 60px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .stat-label {
+            font-size: 16px;
+            color: #4a5a6e;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1e2b;
+        }
+        .stat-value small {
+            font-size: 14px;
+            font-weight: 400;
+            color: #8a9bb5;
+        }
+        .warning-box {
+            background: #fff2f0;
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin: 16px 0 8px;
+            border-left: 5px solid #e35f5a;
+            font-weight: 500;
+            color: #b13f3a;
+            display: none;
+        }
+        .warning-box.show {
+            display: block;
+        }
+        .badge {
+            background: #eef2f6;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 14px;
+            color: #3a4c62;
+            display: inline-block;
+        }
+        .threshold-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0 12px;
+        }
+        .threshold-row label {
+            font-weight: 500;
+            color: #2f3a4c;
+            white-space: nowrap;
+        }
+        .threshold-row input[type="range"] {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #d9e0e9;
+            border-radius: 10px;
+        }
+        .threshold-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #e35f5a;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(227,95,90,0.3);
+        }
+        .threshold-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: #1a1e2b;
+        }
+        .flex-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .btn {
+            background: #e35f5a;
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 16px 24px;
+            border-radius: 60px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 10px 20px rgba(227,95,90,0.25);
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 0;
+            width: 100%;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 5px 12px rgba(227,95,90,0.3);
+        }
+        .btn-outline {
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            color: #2f3a4c;
+            box-shadow: none;
+            font-size: 16px;
+            padding: 12px 20px;
+        }
+        .btn-outline:active {
+            background: #f2f5f9;
+        }
+        .counter-badge {
+            background: #eef2f6;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-weight: 500;
+            color: #2f3a4c;
+        }
+        .extra-conversions {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-top: 20px;
+            border: 1px solid #e6ecf2;
+        }
+        .extra-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        .extra-item:last-child {
+            margin-bottom: 0;
+        }
+        .extra-label {
+            color: #6b7c98;
+        }
+        .extra-value {
+            font-weight: 600;
+            color: #1f2a3f;
+        }
+        .footnote {
+            font-size: 13px;
+            color: #8a9bb5;
+            text-align: center;
+            margin-top: 24px;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
+<div class="container" id="app">
+    <h1>剁手计算器 <span>v1.0</span></h1>
 
-    <div class="card">
-        <h1>明天开始 vibe coding！</h1>
-        <div id="coord">定位中...</div>
-        <div id="weather">--°C</div>
-        <div id="time">--:--:--</div>
+    <!-- 收入设置卡片（可折叠，默认展开） -->
+    <div class="card" id="settingsCard">
+        <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 8 8 0 0 0-14.46 0A1.65 1.65 0 0 0 4.6 15"/></svg>
+            收入设置
+        </div>
+        <!-- 计薪方式切换 -->
+        <div class="income-type">
+            <input type="radio" name="payType" id="monthly" value="monthly" checked>
+            <label for="monthly">月薪</label>
+            <input type="radio" name="payType" id="hourly" value="hourly">
+            <label for="hourly">时薪</label>
+        </div>
+
+        <!-- 月薪输入区域（默认显示） -->
+        <div id="monthlyInputs">
+            <div class="input-field">
+                <label>💰 月薪（元）</label>
+                <input type="number" id="monthlySalary" value="20000" min="0" step="1000">
+            </div>
+            <div class="row-2col">
+                <div class="input-field">
+                    <label>📅 每月工作天数</label>
+                    <input type="number" id="workDays" value="22" min="1" max="31">
+                </div>
+                <div class="input-field">
+                    <label>⏱️ 每日工作时长</label>
+                    <input type="number" id="workHours" value="8" min="1" max="24">
+                </div>
+            </div>
+        </div>
+
+        <!-- 时薪输入区域（默认隐藏） -->
+        <div id="hourlyInputs" class="hidden">
+            <div class="input-field">
+                <label>⏳ 时薪（元/小时）</label>
+                <input type="number" id="hourlyRate" value="100" min="0" step="10">
+            </div>
+            <!-- 工作时长仍然需要用来算每日收入，但单独保留 -->
+            <div class="input-field">
+                <label>⏱️ 每日工作时长</label>
+                <input type="number" id="hourlyWorkHours" value="8" min="1" max="24">
+            </div>
+        </div>
     </div>
 
-    <script>
-        // 获取经纬度并获取天气
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const { latitude, longitude } = position.coords;
-                
-                // 展示经纬度 (这是最稳的)
-                document.getElementById('coord').innerText = `纬度: ${latitude.toFixed(2)}, 经度: ${longitude.toFixed(2)}`;
-                
-                // 获取天气
-                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
-                try {
-                    const weatherRes = await fetch(weatherUrl);
-                    const weatherData = await weatherRes.json();
-                    document.getElementById('weather').innerText = `${weatherData.current_weather.temperature}°C`;
-                } catch (e) {
-                    document.getElementById('weather').innerText = "天气加载失败";
-                }
-            }, () => {
-                document.getElementById('coord').innerText = "定位权限被拒绝";
-            });
-        } else {
-            document.getElementById('coord').innerText = "浏览器不支持定位";
+    <!-- 实时收入数据 -->
+    <div class="stat-row">
+        <span class="stat-label">每秒赚</span>
+        <span class="stat-value" id="perSecond">¥0.00</span>
+    </div>
+    <div class="stat-row">
+        <span class="stat-label">每分钟赚</span>
+        <span class="stat-value" id="perMinute">¥0.00</span>
+    </div>
+
+    <!-- 商品输入区 -->
+    <div class="card" style="margin-top: 16px;">
+        <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            商品计算
+        </div>
+        <div class="input-field">
+            <label>🛒 商品价格（元）</label>
+            <input type="number" id="priceInput" placeholder="例如 499" value="0" min="0" step="0.01">
+        </div>
+        <div class="stat-row" style="background: #f0f4fe; margin-top: 12px;">
+            <span class="stat-label">相当于工作</span>
+            <span class="stat-value" id="workTime">0 小时 0 分钟</span>
+        </div>
+
+        <!-- 剁手预警区域 -->
+        <div class="threshold-row">
+            <label>⚠️ 剁手阈值</label>
+            <input type="range" id="thresholdSlider" min="0.5" max="24" value="4" step="0.5">
+            <span class="threshold-value" id="thresholdDisplay">4.0 小时</span>
+        </div>
+
+        <!-- 警告框 -->
+        <div id="warningBox" class="warning-box">
+            ⚠️ 确定要花掉 <span id="warningHours"></span> 小时的劳动吗？再想想！
+        </div>
+
+        <!-- 额外换算（奶茶/午饭/电影） -->
+        <div class="extra-conversions" id="extraConversions">
+            <div class="extra-item">
+                <span class="extra-label">🥤 约等于</span>
+                <span class="extra-value" id="milkTea">0 杯奶茶</span>
+            </div>
+            <div class="extra-item">
+                <span class="extra-label">🍱 约等于</span>
+                <span class="extra-value" id="lunch">0 顿午饭</span>
+            </div>
+            <div class="extra-item">
+                <span class="extra-label">🎬 约等于</span>
+                <span class="extra-value" id="movie">0 张电影票</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 正向激励区 -->
+    <div class="flex-row" style="margin: 16px 0 8px;">
+        <button class="btn" id="resistBtn">
+            💪 忍住没买
+        </button>
+        <div class="counter-badge" id="resistCounter">今日忍住 0 次</div>
+    </div>
+
+    <div class="footnote">
+        所有设置自动保存 · 花钱前看一眼
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ----- DOM 元素 -----
+        const monthlyRadio = document.getElementById('monthly');
+        const hourlyRadio = document.getElementById('hourly');
+        const monthlyDiv = document.getElementById('monthlyInputs');
+        const hourlyDiv = document.getElementById('hourlyInputs');
+
+        const monthlySalaryInput = document.getElementById('monthlySalary');
+        const workDaysInput = document.getElementById('workDays');
+        const workHoursInput = document.getElementById('workHours');
+        const hourlyRateInput = document.getElementById('hourlyRate');
+        const hourlyWorkHoursInput = document.getElementById('hourlyWorkHours');
+
+        const perSecondSpan = document.getElementById('perSecond');
+        const perMinuteSpan = document.getElementById('perMinute');
+
+        const priceInput = document.getElementById('priceInput');
+        const workTimeSpan = document.getElementById('workTime');
+        const thresholdSlider = document.getElementById('thresholdSlider');
+        const thresholdDisplay = document.getElementById('thresholdDisplay');
+        const warningBox = document.getElementById('warningBox');
+        const warningHoursSpan = document.getElementById('warningHours');
+
+        const milkTeaSpan = document.getElementById('milkTea');
+        const lunchSpan = document.getElementById('lunch');
+        const movieSpan = document.getElementById('movie');
+
+        const resistBtn = document.getElementById('resistBtn');
+        const resistCounter = document.getElementById('resistCounter');
+
+        // ----- 常量：换算基准 -----
+        const MILK_TEA_PRICE = 25;   // 一杯奶茶25元
+        const LUNCH_PRICE = 40;      // 一顿午饭40元
+        const MOVIE_PRICE = 50;       // 一张电影票50元
+
+        // ----- 本地存储键名 -----
+        const STORAGE_KEYS = {
+            payType: 'daoshou_payType',
+            monthlySalary: 'daoshou_monthlySalary',
+            workDays: 'daoshou_workDays',
+            workHours: 'daoshou_workHours',
+            hourlyRate: 'daoshou_hourlyRate',
+            hourlyWorkHours: 'daoshou_hourlyWorkHours',
+            threshold: 'daoshou_threshold',
+            resistCount: 'daoshou_resistCount',
+            // 还可以存日期用于每日重置，但简化版先只存总数
+        };
+
+        // ----- 工具函数：保存/加载设置 -----
+        function loadSettings() {
+            // 计薪方式
+            const savedPayType = localStorage.getItem(STORAGE_KEYS.payType);
+            if (savedPayType === 'hourly') {
+                hourlyRadio.checked = true;
+                monthlyDiv.classList.add('hidden');
+                hourlyDiv.classList.remove('hidden');
+            } else {
+                monthlyRadio.checked = true;
+                monthlyDiv.classList.remove('hidden');
+                hourlyDiv.classList.add('hidden');
+            }
+
+            // 月薪相关
+            if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
+            if (localStorage.getItem(STORAGE_KEYS.workDays)) workDaysInput.value = localStorage.getItem(STORAGE_KEYS.workDays);
+            if (localStorage.getItem(STORAGE_KEYS.workHours)) workHoursInput.value = localStorage.getItem(STORAGE_KEYS.workHours);
+            // 时薪相关
+            if (localStorage.getItem(STORAGE_KEYS.hourlyRate)) hourlyRateInput.value = localStorage.getItem(STORAGE_KEYS.hourlyRate);
+            if (localStorage.getItem(STORAGE_KEYS.hourlyWorkHours)) hourlyWorkHoursInput.value = localStorage.getItem(STORAGE_KEYS.hourlyWorkHours);
+            // 阈值
+            if (localStorage.getItem(STORAGE_KEYS.threshold)) {
+                const thr = parseFloat(localStorage.getItem(STORAGE_KEYS.threshold));
+                thresholdSlider.value = thr;
+                thresholdDisplay.innerText = thr.toFixed(1) + ' 小时';
+            }
+            // 忍住次数（简单加载，不按天重置）
+            if (localStorage.getItem(STORAGE_KEYS.resistCount)) {
+                resistCount = parseInt(localStorage.getItem(STORAGE_KEYS.resistCount)) || 0;
+            } else {
+                resistCount = 0;
+            }
+            updateResistCounter();
         }
 
-        // 更新时间
-        setInterval(() => {
-            document.getElementById('time').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-        }, 1000);
-    </script>
+        function saveSettings() {
+            localStorage.setItem(STORAGE_KEYS.payType, monthlyRadio.checked ? 'monthly' : 'hourly');
+            localStorage.setItem(STORAGE_KEYS.monthlySalary, monthlySalaryInput.value);
+            localStorage.setItem(STORAGE_KEYS.workDays, workDaysInput.value);
+            localStorage.setItem(STORAGE_KEYS.workHours, workHoursInput.value);
+            localStorage.setItem(STORAGE_KEYS.hourlyRate, hourlyRateInput.value);
+            localStorage.setItem(STORAGE_KEYS.hourlyWorkHours, hourlyWorkHoursInput.value);
+            localStorage.setItem(STORAGE_KEYS.threshold, thresholdSlider.value);
+            localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
+        }
+
+        // ----- 计算当前时薪（元/小时）-----
+        function getHourlyRate() {
+            if (monthlyRadio.checked) {
+                const monthly = parseFloat(monthlySalaryInput.value) || 0;
+                const days = parseFloat(workDaysInput.value) || 1;
+                const hours = parseFloat(workHoursInput.value) || 1;
+                return monthly / days / hours;
+            } else {
+                return parseFloat(hourlyRateInput.value) || 0;
+            }
+        }
+
+        // ----- 更新所有显示 -----
+        function updateAll() {
+            const hourlyRate = getHourlyRate(); // 元/小时
+            const perSecond = hourlyRate / 3600;
+            const perMinute = hourlyRate / 60;
+
+            perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
+            perMinuteSpan.innerText = '¥' + perMinute.toFixed(2);
+
+            // 商品价格输入
+            const price = parseFloat(priceInput.value) || 0;
+            let workHoursFloat = 0;
+            if (hourlyRate > 0) {
+                workHoursFloat = price / hourlyRate;
+            } else {
+                workHoursFloat = 0;
+            }
+            const hours = Math.floor(workHoursFloat);
+            const minutes = Math.round((workHoursFloat - hours) * 60);
+            // 避免负零等情况
+            if (price === 0 || workHoursFloat === 0) {
+                workTimeSpan.innerText = `0 小时 0 分钟`;
+            } else {
+                workTimeSpan.innerText = `${hours} 小时 ${minutes} 分钟`;
+            }
+
+            // 额外换算
+            if (price > 0 && MILK_TEA_PRICE > 0) {
+                milkTeaSpan.innerText = (price / MILK_TEA_PRICE).toFixed(1) + ' 杯';
+                lunchSpan.innerText = (price / LUNCH_PRICE).toFixed(1) + ' 顿';
+                movieSpan.innerText = (price / MOVIE_PRICE).toFixed(1) + ' 张';
+            } else {
+                milkTeaSpan.innerText = '0 杯';
+                lunchSpan.innerText = '0 顿';
+                movieSpan.innerText = '0 张';
+            }
+
+            // 阈值警告
+            const threshold = parseFloat(thresholdSlider.value);
+            thresholdDisplay.innerText = threshold.toFixed(1) + ' 小时';
+            if (workHoursFloat >= threshold && price > 0) {
+                warningBox.classList.add('show');
+                warningHoursSpan.innerText = workHoursFloat.toFixed(1);
+            } else {
+                warningBox.classList.remove('show');
+            }
+
+            // 保存设置
+            saveSettings();
+        }
+
+        // ----- 忍住按钮逻辑 -----
+        let resistCount = 0; // 初始值后面会load
+        function updateResistCounter() {
+            resistCounter.innerText = `今日忍住 ${resistCount} 次`;
+        }
+
+        resistBtn.addEventListener('click', function() {
+            resistCount++;
+            updateResistCounter();
+            localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
+            // 可添加轻微动画反馈
+        });
+
+        // ----- 事件监听 -----
+        // 计薪方式切换
+        monthlyRadio.addEventListener('change', function(e) {
+            if (monthlyRadio.checked) {
+                monthlyDiv.classList.remove('hidden');
+                hourlyDiv.classList.add('hidden');
+            }
+            updateAll();
+        });
+        hourlyRadio.addEventListener('change', function(e) {
+            if (hourlyRadio.checked) {
+                monthlyDiv.classList.add('hidden');
+                hourlyDiv.classList.remove('hidden');
+            }
+            updateAll();
+        });
+
+        // 所有输入字段添加事件
+        const inputsToWatch = [
+            monthlySalaryInput, workDaysInput, workHoursInput,
+            hourlyRateInput, hourlyWorkHoursInput, priceInput, thresholdSlider
+        ];
+        inputsToWatch.forEach(el => el.addEventListener('input', updateAll));
+
+        // 手动触发更新一次
+        window.addEventListener('load', function() {
+            loadSettings();
+            updateAll();
+        });
+
+        // 确保第一次加载时更新所有依赖
+        updateAll();
+    })();
+</script>
 </body>
 </html>
