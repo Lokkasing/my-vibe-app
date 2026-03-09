@@ -22,7 +22,7 @@
             color: #3e3a36;
         }
         .container {
-            max-width: 520px;      /* 稍微放宽一点，适应大屏 */
+            max-width: 520px;
             width: 100%;
             background: #ffffff;
             border-radius: 24px;
@@ -98,8 +98,6 @@
             background: white;
             color: #3e3a36;
         }
-
-        /* 收入行：只保留每分钟赚 */
         .income-rate-row {
             display: flex;
             align-items: center;
@@ -109,7 +107,7 @@
             background: none;
             border: none;
             gap: 6px;
-            flex-wrap: wrap;        /* 小屏可换行 */
+            flex-wrap: wrap;
         }
         .rate-item {
             display: flex;
@@ -132,8 +130,6 @@
             font-weight: 400;
             white-space: nowrap;
         }
-
-        /* 商品卡片 */
         .goal-card {
             background: #ffffff;
             border-radius: 20px;
@@ -141,6 +137,7 @@
             margin-bottom: 14px;
             border: 1px solid #e9e2d9;
             transition: background 0.1s;
+            position: relative;
         }
         .goal-card.green {
             background-color: #f6f9f4;
@@ -154,13 +151,14 @@
             background-color: #fdf5f2;
             border-left: 4px solid #e3bcb4;
         }
-
         .goal-header {
             display: flex;
             gap: 8px;
             margin-bottom: 14px;
             align-items: center;
             flex-wrap: wrap;
+            padding-right: 30px; /* 为右侧删除按钮留出空间 */
+            position: relative;
         }
         .goal-header input {
             flex: 1 1 40%;
@@ -174,7 +172,22 @@
         .goal-header input:focus {
             border-color: #b7aa9c;
         }
-
+        .delete-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #bfb2a4;
+            cursor: pointer;
+            padding: 8px 8px 8px 12px; /* 扩大点击区域 */
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .delete-btn:hover {
+            color: #a28e7c;
+        }
         .goal-progress-row {
             display: flex;
             align-items: center;
@@ -208,8 +221,6 @@
             min-width: 48px;
             text-align: right;
         }
-
-        /* 拆分后的两行：已赚 和 相当于工作 */
         .goal-earned {
             font-size: 13px;
             color: #7f7368;
@@ -223,33 +234,11 @@
             background: #f0ebe5;
             padding: 4px 12px;
             border-radius: 30px;
-            display: inline-block;    /* 宽度自适应 */
-            margin-bottom: 12px;
+            display: inline-block;
+            margin-bottom: 4px;
             word-break: break-word;
             max-width: 100%;
         }
-
-        /* 卡片底部：删除按钮右对齐 */
-        .card-footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 4px;
-        }
-        .delete-btn {
-            background: none;
-            border: none;
-            font-size: 13px;
-            color: #bfb2a4;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 30px;
-            transition: background 0.2s;
-        }
-        .delete-btn:hover {
-            background: #e8e0d8;
-            color: #a28e7c;
-        }
-
         .add-btn {
             background: #ffffff;
             border: 1px dashed #cbc1b5;
@@ -546,6 +535,7 @@
                             <div class="goal-header">
                                 <input type="text" class="goal-name" value="${escapeHtml(goal.name)}" placeholder="商品名称">
                                 <input type="text" class="goal-price" value="${price}" inputmode="numeric" data-id="${goal.id}" placeholder="价格">
+                                <button class="delete-btn" onclick="deleteGoal(${goal.id})">✕</button>
                             </div>
                             <div class="goal-progress-row">
                                 <progress value="${percent}" max="100">${percent}%</progress>
@@ -553,9 +543,6 @@
                             </div>
                             <div class="goal-earned">已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}</div>
                             <div class="goal-worktime">相当于工作 ${timeStr}</div>
-                            <div class="card-footer">
-                                <button class="delete-btn" onclick="deleteGoal(${goal.id})">删除</button>
-                            </div>
                         </div>
                     `;
                 });
