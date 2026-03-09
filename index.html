@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>剁手计算器 · 花前算一算</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #f5f7fa;
@@ -18,21 +14,18 @@
             align-items: center;
             justify-content: center;
             padding: 16px;
-            margin: 0;
         }
         .container {
             max-width: 480px;
             width: 100%;
             background: white;
             border-radius: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.06);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
             padding: 24px 20px 32px;
-            transition: all 0.2s ease;
         }
         h1 {
             font-size: 32px;
             font-weight: 700;
-            letter-spacing: -0.5px;
             color: #1a1e2b;
             display: flex;
             align-items: center;
@@ -43,10 +36,8 @@
             background: #fee9e7;
             color: #e35f5a;
             font-size: 14px;
-            font-weight: 500;
             padding: 4px 12px;
             border-radius: 40px;
-            letter-spacing: 0;
         }
         .card {
             background: #f8fafd;
@@ -63,9 +54,6 @@
             align-items: center;
             gap: 6px;
         }
-        .section-title svg {
-            opacity: 0.7;
-        }
         .income-type {
             display: flex;
             gap: 12px;
@@ -80,12 +68,9 @@
             text-align: center;
             font-weight: 500;
             color: #4a5a6e;
-            transition: all 0.2s;
             cursor: pointer;
         }
-        .income-type input[type="radio"] {
-            display: none;
-        }
+        .income-type input[type="radio"] { display: none; }
         .income-type input[type="radio"]:checked + label {
             border-color: #e35f5a;
             background: #fff4f3;
@@ -110,11 +95,8 @@
             border-radius: 20px;
             background: white;
             outline: none;
-            transition: border 0.2s;
         }
-        .input-field input:focus {
-            border-color: #e35f5a;
-        }
+        .input-field input:focus { border-color: #e35f5a; }
         .row-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -130,56 +112,32 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        .stat-label {
-            font-size: 16px;
-            color: #4a5a6e;
-        }
+        .stat-label { font-size: 16px; color: #4a5a6e; }
         .stat-value {
             font-size: 24px;
             font-weight: 700;
             color: #1a1e2b;
         }
-        .stat-value small {
-            font-size: 14px;
-            font-weight: 400;
-            color: #8a9bb5;
-        }
+        .stat-value small { font-size: 14px; font-weight: 400; color: #8a9bb5; }
         .warning-box {
             background: #fff2f0;
             border-radius: 18px;
             padding: 16px 18px;
             margin: 16px 0 8px;
             border-left: 5px solid #e35f5a;
-            font-weight: 500;
             color: #b13f3a;
             display: none;
         }
-        .warning-box.show {
-            display: block;
-        }
-        .badge {
-            background: #eef2f6;
-            border-radius: 40px;
-            padding: 6px 16px;
-            font-size: 14px;
-            color: #3a4c62;
-            display: inline-block;
-        }
+        .warning-box.show { display: block; }
         .threshold-row {
             display: flex;
             align-items: center;
             gap: 16px;
             margin: 16px 0 12px;
         }
-        .threshold-row label {
-            font-weight: 500;
-            color: #2f3a4c;
-            white-space: nowrap;
-        }
         .threshold-row input[type="range"] {
             flex: 1;
             height: 6px;
-            -webkit-appearance: none;
             background: #d9e0e9;
             border-radius: 10px;
         }
@@ -190,20 +148,14 @@
             background: #e35f5a;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(227,95,90,0.3);
         }
-        .threshold-value {
-            min-width: 60px;
-            text-align: right;
-            font-weight: 600;
-            color: #1a1e2b;
-        }
+        .threshold-value { min-width: 60px; text-align: right; font-weight: 600; }
         .flex-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
             gap: 12px;
+            flex-wrap: wrap;
         }
         .btn {
             background: #e35f5a;
@@ -218,15 +170,10 @@
             justify-content: center;
             gap: 8px;
             box-shadow: 0 10px 20px rgba(227,95,90,0.25);
-            transition: all 0.2s;
             cursor: pointer;
-            border: 0;
             width: 100%;
         }
-        .btn:active {
-            transform: scale(0.97);
-            box-shadow: 0 5px 12px rgba(227,95,90,0.3);
-        }
+        .btn:active { transform: scale(0.97); }
         .btn-outline {
             background: white;
             border: 1.5px solid #e2e8f0;
@@ -234,9 +181,6 @@
             box-shadow: none;
             font-size: 16px;
             padding: 12px 20px;
-        }
-        .btn-outline:active {
-            background: #f2f5f9;
         }
         .counter-badge {
             background: #eef2f6;
@@ -258,38 +202,133 @@
             margin-bottom: 10px;
             font-size: 15px;
         }
-        .extra-item:last-child {
-            margin-bottom: 0;
-        }
-        .extra-label {
-            color: #6b7c98;
-        }
-        .extra-value {
-            font-weight: 600;
-            color: #1f2a3f;
-        }
+        .extra-item:last-child { margin-bottom: 0; }
+        .extra-label { color: #6b7c98; }
+        .extra-value { font-weight: 600; color: #1f2a3f; }
         .footnote {
             font-size: 13px;
             color: #8a9bb5;
             text-align: center;
             margin-top: 24px;
         }
-        .hidden {
-            display: none;
+        .hidden { display: none; }
+
+        /* 累计收入区域（带时间设置） */
+        .accumulated-row {
+            background: linear-gradient(135deg, #eef6fb, #ffffff);
+            border-radius: 60px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #d4e4f0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .accumulated-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3b5c;
+        }
+        .accumulated-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1e6f5c;
+        }
+        /* 起始时间设置行 */
+        .start-time-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        .start-time-row label {
+            font-size: 14px;
+            color: #3b5a7c;
+            white-space: nowrap;
+        }
+        .start-time-row input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 14px;
+            background: white;
+        }
+        /* 目标进度条 */
+        .goal-section {
+            background: #f0f7fa;
+            border-radius: 28px;
+            padding: 18px;
+            margin: 20px 0;
+        }
+        .goal-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .goal-input-row input {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 15px;
+        }
+        .goal-input-row input:focus { border-color: #e35f5a; }
+        .goal-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        progress {
+            flex: 1;
+            height: 24px;
+            border-radius: 40px;
+            overflow: hidden;
+        }
+        progress::-webkit-progress-bar { background-color: #e2e8f0; border-radius: 40px; }
+        progress::-webkit-progress-value { background-color: #e35f5a; border-radius: 40px; }
+        .goal-percent {
+            font-weight: 700;
+            color: #1f2a3f;
+            min-width: 60px;
+            text-align: right;
+        }
+        .goal-name-display {
+            font-size: 16px;
+            color: #2f3a4c;
+            margin-bottom: 6px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 <div class="container" id="app">
-    <h1>剁手计算器 <span>v1.0</span></h1>
+    <h1>剁手计算器 <span>v2.1</span></h1>
 
-    <!-- 收入设置卡片（可折叠，默认展开） -->
-    <div class="card" id="settingsCard">
-        <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 8 8 0 0 0-14.46 0A1.65 1.65 0 0 0 4.6 15"/></svg>
-            收入设置
+    <!-- 累计收入 + 起始时间设置 -->
+    <div class="accumulated-row">
+        <div style="display: flex; flex-direction: column; width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span class="accumulated-label">⏳ 累计收入</span>
+                <span class="accumulated-value" id="accumulatedAmount">¥0.00</span>
+            </div>
+            <!-- 起始时间设定 -->
+            <div class="start-time-row">
+                <label>📅 从</label>
+                <input type="datetime-local" id="startTimeInput">
+            </div>
         </div>
-        <!-- 计薪方式切换 -->
+    </div>
+
+    <!-- 收入设置卡片 -->
+    <div class="card">
+        <div class="section-title">⚙️ 收入设置</div>
         <div class="income-type">
             <input type="radio" name="payType" id="monthly" value="monthly" checked>
             <label for="monthly">月薪</label>
@@ -297,7 +336,6 @@
             <label for="hourly">时薪</label>
         </div>
 
-        <!-- 月薪输入区域（默认显示） -->
         <div id="monthlyInputs">
             <div class="input-field">
                 <label>💰 月薪（元）</label>
@@ -315,13 +353,11 @@
             </div>
         </div>
 
-        <!-- 时薪输入区域（默认隐藏） -->
         <div id="hourlyInputs" class="hidden">
             <div class="input-field">
                 <label>⏳ 时薪（元/小时）</label>
                 <input type="number" id="hourlyRate" value="100" min="0" step="10">
             </div>
-            <!-- 工作时长仍然需要用来算每日收入，但单独保留 -->
             <div class="input-field">
                 <label>⏱️ 每日工作时长</label>
                 <input type="number" id="hourlyWorkHours" value="8" min="1" max="24">
@@ -339,35 +375,30 @@
         <span class="stat-value" id="perMinute">¥0.00</span>
     </div>
 
-    <!-- 商品输入区 -->
-    <div class="card" style="margin-top: 16px;">
-        <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            商品计算
-        </div>
+    <!-- 商品计算区 -->
+    <div class="card">
+        <div class="section-title">🛒 商品计算</div>
         <div class="input-field">
-            <label>🛒 商品价格（元）</label>
+            <label>🛍️ 商品价格（元）</label>
             <input type="number" id="priceInput" placeholder="例如 499" value="0" min="0" step="0.01">
         </div>
-        <div class="stat-row" style="background: #f0f4fe; margin-top: 12px;">
+        <div class="stat-row" style="background:#f0f4fe;">
             <span class="stat-label">相当于工作</span>
             <span class="stat-value" id="workTime">0 小时 0 分钟</span>
         </div>
 
-        <!-- 剁手预警区域 -->
+        <!-- 剁手预警 -->
         <div class="threshold-row">
             <label>⚠️ 剁手阈值</label>
             <input type="range" id="thresholdSlider" min="0.5" max="24" value="4" step="0.5">
             <span class="threshold-value" id="thresholdDisplay">4.0 小时</span>
         </div>
-
-        <!-- 警告框 -->
         <div id="warningBox" class="warning-box">
             ⚠️ 确定要花掉 <span id="warningHours"></span> 小时的劳动吗？再想想！
         </div>
 
-        <!-- 额外换算（奶茶/午饭/电影） -->
-        <div class="extra-conversions" id="extraConversions">
+        <!-- 额外换算 -->
+        <div class="extra-conversions">
             <div class="extra-item">
                 <span class="extra-label">🥤 约等于</span>
                 <span class="extra-value" id="milkTea">0 杯奶茶</span>
@@ -383,17 +414,27 @@
         </div>
     </div>
 
-    <!-- 正向激励区 -->
-    <div class="flex-row" style="margin: 16px 0 8px;">
-        <button class="btn" id="resistBtn">
-            💪 忍住没买
-        </button>
+    <!-- 攒钱目标 -->
+    <div class="goal-section">
+        <div class="section-title">🎯 攒钱目标</div>
+        <div class="goal-input-row">
+            <input type="text" id="goalName" placeholder="目标名称（如 Switch）" value="Switch">
+            <input type="number" id="goalPrice" placeholder="目标价格（元）" value="2500" min="0" step="10">
+        </div>
+        <div class="goal-name-display" id="goalDisplay">目标：Switch · ¥2500</div>
+        <div class="goal-progress">
+            <progress id="goalProgress" value="0" max="100">0%</progress>
+            <span class="goal-percent" id="goalPercent">0%</span>
+        </div>
+    </div>
+
+    <!-- 正向激励 -->
+    <div class="flex-row">
+        <button class="btn" id="resistBtn">💪 忍住没买</button>
         <div class="counter-badge" id="resistCounter">今日忍住 0 次</div>
     </div>
 
-    <div class="footnote">
-        所有设置自动保存 · 花钱前看一眼
-    </div>
+    <div class="footnote">所有设置自动保存 · 花钱前看一眼</div>
 </div>
 
 <script>
@@ -427,10 +468,19 @@
         const resistBtn = document.getElementById('resistBtn');
         const resistCounter = document.getElementById('resistCounter');
 
-        // ----- 常量：换算基准 -----
-        const MILK_TEA_PRICE = 25;   // 一杯奶茶25元
-        const LUNCH_PRICE = 40;      // 一顿午饭40元
-        const MOVIE_PRICE = 50;       // 一张电影票50元
+        // 新增元素
+        const accumulatedSpan = document.getElementById('accumulatedAmount');
+        const startTimeInput = document.getElementById('startTimeInput');
+        const goalNameInput = document.getElementById('goalName');
+        const goalPriceInput = document.getElementById('goalPrice');
+        const goalDisplay = document.getElementById('goalDisplay');
+        const goalProgress = document.getElementById('goalProgress');
+        const goalPercentSpan = document.getElementById('goalPercent');
+
+        // ----- 常量 -----
+        const MILK_TEA_PRICE = 25;
+        const LUNCH_PRICE = 40;
+        const MOVIE_PRICE = 50;
 
         // ----- 本地存储键名 -----
         const STORAGE_KEYS = {
@@ -442,12 +492,39 @@
             hourlyWorkHours: 'daoshou_hourlyWorkHours',
             threshold: 'daoshou_threshold',
             resistCount: 'daoshou_resistCount',
-            // 还可以存日期用于每日重置，但简化版先只存总数
+            goalName: 'daoshou_goalName',
+            goalPrice: 'daoshou_goalPrice',
+            startTime: 'daoshou_startTime',   // 存储起始时间
         };
 
-        // ----- 工具函数：保存/加载设置 -----
+        let resistCount = 0;
+        let timerInterval = null;
+
+        // ----- 辅助：格式化日期时间到本地字符串（用于 input value）-----
+        function formatDateTimeForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // ----- 获取当前设置的起始时间（返回 Date 对象，如果未设置则默认为今天0点）-----
+        function getStartTime() {
+            const saved = localStorage.getItem(STORAGE_KEYS.startTime);
+            if (saved) {
+                const d = new Date(saved);
+                if (!isNaN(d.getTime())) return d;
+            }
+            // 默认今天0点
+            const defaultStart = new Date();
+            defaultStart.setHours(0, 0, 0, 0);
+            return defaultStart;
+        }
+
+        // ----- 加载设置 -----
         function loadSettings() {
-            // 计薪方式
             const savedPayType = localStorage.getItem(STORAGE_KEYS.payType);
             if (savedPayType === 'hourly') {
                 hourlyRadio.checked = true;
@@ -459,26 +536,27 @@
                 hourlyDiv.classList.add('hidden');
             }
 
-            // 月薪相关
             if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
             if (localStorage.getItem(STORAGE_KEYS.workDays)) workDaysInput.value = localStorage.getItem(STORAGE_KEYS.workDays);
             if (localStorage.getItem(STORAGE_KEYS.workHours)) workHoursInput.value = localStorage.getItem(STORAGE_KEYS.workHours);
-            // 时薪相关
             if (localStorage.getItem(STORAGE_KEYS.hourlyRate)) hourlyRateInput.value = localStorage.getItem(STORAGE_KEYS.hourlyRate);
             if (localStorage.getItem(STORAGE_KEYS.hourlyWorkHours)) hourlyWorkHoursInput.value = localStorage.getItem(STORAGE_KEYS.hourlyWorkHours);
-            // 阈值
             if (localStorage.getItem(STORAGE_KEYS.threshold)) {
                 const thr = parseFloat(localStorage.getItem(STORAGE_KEYS.threshold));
                 thresholdSlider.value = thr;
                 thresholdDisplay.innerText = thr.toFixed(1) + ' 小时';
             }
-            // 忍住次数（简单加载，不按天重置）
-            if (localStorage.getItem(STORAGE_KEYS.resistCount)) {
-                resistCount = parseInt(localStorage.getItem(STORAGE_KEYS.resistCount)) || 0;
-            } else {
-                resistCount = 0;
-            }
+            resistCount = parseInt(localStorage.getItem(STORAGE_KEYS.resistCount)) || 0;
             updateResistCounter();
+
+            // 目标设置
+            if (localStorage.getItem(STORAGE_KEYS.goalName)) goalNameInput.value = localStorage.getItem(STORAGE_KEYS.goalName);
+            if (localStorage.getItem(STORAGE_KEYS.goalPrice)) goalPriceInput.value = localStorage.getItem(STORAGE_KEYS.goalPrice);
+            updateGoalDisplay();
+
+            // 起始时间设置
+            const start = getStartTime();
+            startTimeInput.value = formatDateTimeForInput(start);
         }
 
         function saveSettings() {
@@ -490,9 +568,15 @@
             localStorage.setItem(STORAGE_KEYS.hourlyWorkHours, hourlyWorkHoursInput.value);
             localStorage.setItem(STORAGE_KEYS.threshold, thresholdSlider.value);
             localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
+            localStorage.setItem(STORAGE_KEYS.goalName, goalNameInput.value);
+            localStorage.setItem(STORAGE_KEYS.goalPrice, goalPriceInput.value);
+            // 起始时间保存
+            if (startTimeInput.value) {
+                localStorage.setItem(STORAGE_KEYS.startTime, new Date(startTimeInput.value).toISOString());
+            }
         }
 
-        // ----- 计算当前时薪（元/小时）-----
+        // ----- 计算当前时薪 -----
         function getHourlyRate() {
             if (monthlyRadio.checked) {
                 const monthly = parseFloat(monthlySalaryInput.value) || 0;
@@ -504,34 +588,63 @@
             }
         }
 
-        // ----- 更新所有显示 -----
+        // ----- 计算从起始时间到现在的累计收入 -----
+        function getAccumulatedSinceStart() {
+            const startTimeStr = startTimeInput.value;
+            if (!startTimeStr) return 0;
+            const startDate = new Date(startTimeStr);
+            if (isNaN(startDate.getTime())) return 0;
+            const now = new Date();
+            const secondsPassed = Math.max(0, Math.floor((now - startDate) / 1000));
+            const hourlyRate = getHourlyRate();
+            return (hourlyRate / 3600) * secondsPassed;
+        }
+
+        // ----- 更新累计收入显示（每秒调用）-----
+        function updateAccumulated() {
+            const accumulated = getAccumulatedSinceStart();
+            accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
+            // 同时更新目标进度
+            updateGoalProgress(accumulated);
+        }
+
+        // ----- 更新目标显示与进度 -----
+        function updateGoalDisplay() {
+            const name = goalNameInput.value.trim() || '未命名';
+            const price = parseFloat(goalPriceInput.value) || 0;
+            goalDisplay.innerText = `目标：${name} · ¥${price.toFixed(2)}`;
+        }
+
+        function updateGoalProgress(accumulated) {
+            const price = parseFloat(goalPriceInput.value) || 0;
+            if (price > 0) {
+                const percent = Math.min(100, (accumulated / price) * 100);
+                goalProgress.value = percent;
+                goalPercentSpan.innerText = percent.toFixed(1) + '%';
+            } else {
+                goalProgress.value = 0;
+                goalPercentSpan.innerText = '0%';
+            }
+        }
+
+        // ----- 更新所有其他显示 -----
         function updateAll() {
-            const hourlyRate = getHourlyRate(); // 元/小时
+            const hourlyRate = getHourlyRate();
             const perSecond = hourlyRate / 3600;
             const perMinute = hourlyRate / 60;
 
             perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
             perMinuteSpan.innerText = '¥' + perMinute.toFixed(2);
 
-            // 商品价格输入
             const price = parseFloat(priceInput.value) || 0;
             let workHoursFloat = 0;
-            if (hourlyRate > 0) {
-                workHoursFloat = price / hourlyRate;
-            } else {
-                workHoursFloat = 0;
-            }
+            if (hourlyRate > 0) workHoursFloat = price / hourlyRate;
             const hours = Math.floor(workHoursFloat);
             const minutes = Math.round((workHoursFloat - hours) * 60);
-            // 避免负零等情况
-            if (price === 0 || workHoursFloat === 0) {
-                workTimeSpan.innerText = `0 小时 0 分钟`;
-            } else {
-                workTimeSpan.innerText = `${hours} 小时 ${minutes} 分钟`;
-            }
+            workTimeSpan.innerText = (price === 0) ? '0 小时 0 分钟' : `${hours} 小时 ${minutes} 分钟`;
 
             // 额外换算
-            if (price > 0 && MILK_TEA_PRICE > 0) {
+            if (price > 0) {
                 milkTeaSpan.innerText = (price / MILK_TEA_PRICE).toFixed(1) + ' 杯';
                 lunchSpan.innerText = (price / LUNCH_PRICE).toFixed(1) + ' 顿';
                 movieSpan.innerText = (price / MOVIE_PRICE).toFixed(1) + ' 张';
@@ -551,55 +664,60 @@
                 warningBox.classList.remove('show');
             }
 
-            // 保存设置
+            // 更新累计（会连带更新目标进度）
+            updateAccumulated();
+
             saveSettings();
         }
 
         // ----- 忍住按钮逻辑 -----
-        let resistCount = 0; // 初始值后面会load
         function updateResistCounter() {
             resistCounter.innerText = `今日忍住 ${resistCount} 次`;
         }
-
         resistBtn.addEventListener('click', function() {
             resistCount++;
             updateResistCounter();
             localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
-            // 可添加轻微动画反馈
         });
 
-        // ----- 事件监听 -----
-        // 计薪方式切换
-        monthlyRadio.addEventListener('change', function(e) {
-            if (monthlyRadio.checked) {
-                monthlyDiv.classList.remove('hidden');
-                hourlyDiv.classList.add('hidden');
-            }
-            updateAll();
-        });
-        hourlyRadio.addEventListener('change', function(e) {
-            if (hourlyRadio.checked) {
-                monthlyDiv.classList.add('hidden');
-                hourlyDiv.classList.remove('hidden');
-            }
-            updateAll();
-        });
+        // ----- 事件绑定 -----
+        monthlyRadio.addEventListener('change', updateAll);
+        hourlyRadio.addEventListener('change', updateAll);
 
-        // 所有输入字段添加事件
         const inputsToWatch = [
             monthlySalaryInput, workDaysInput, workHoursInput,
-            hourlyRateInput, hourlyWorkHoursInput, priceInput, thresholdSlider
+            hourlyRateInput, hourlyWorkHoursInput, priceInput, thresholdSlider,
+            goalNameInput, goalPriceInput, startTimeInput   // 起始时间变化也要重新计算
         ];
         inputsToWatch.forEach(el => el.addEventListener('input', updateAll));
 
-        // 手动触发更新一次
+        goalNameInput.addEventListener('input', function() {
+            updateGoalDisplay();
+            saveSettings();
+        });
+        goalPriceInput.addEventListener('input', function() {
+            updateGoalDisplay();
+            saveSettings();
+        });
+
+        // ----- 初始化定时器（每秒更新累计收入）-----
+        function startAccumulatedTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                updateAccumulated(); // 每秒重新计算累计并更新进度
+            }, 1000);
+        }
+
+        // ----- 页面加载完成 -----
         window.addEventListener('load', function() {
             loadSettings();
             updateAll();
+            startAccumulatedTimer();
         });
 
-        // 确保第一次加载时更新所有依赖
-        updateAll();
+        window.addEventListener('beforeunload', function() {
+            if (timerInterval) clearInterval(timerInterval);
+        });
     })();
 </script>
 </body>
