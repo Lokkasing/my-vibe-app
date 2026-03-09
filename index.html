@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>剁手计算器 · 日式极简</title>
+    <title>剁手计算器 · 翻页时钟版</title>
     <style>
         * { 
             box-sizing: border-box; 
@@ -75,6 +75,9 @@
             font-size: 28px;
             font-weight: 500;
             color: #4c6b5f;
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
         .start-time-row {
             display: flex;
@@ -123,6 +126,9 @@
         .rate-item .rate-value {
             font-weight: 500;
             color: #4f5d55;
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
         .rate-hint {
             font-size: 11px;
@@ -130,6 +136,58 @@
             font-weight: 400;
             white-space: nowrap;
         }
+
+        /* 翻页数字样式 */
+        .flip-digit {
+            display: inline-block;
+            position: relative;
+            width: 0.8em;
+            height: 1.2em;
+            line-height: 1.2em;
+            text-align: center;
+            background: transparent;
+            perspective: 200px;
+        }
+        .flip-digit .digit-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-out;
+        }
+        .flip-digit.flip .digit-wrapper {
+            animation: flip 0.5s ease-out;
+        }
+        @keyframes flip {
+            0% { transform: rotateX(0); }
+            50% { transform: rotateX(-180deg); }
+            100% { transform: rotateX(-360deg); }
+        }
+        .flip-digit .top, .flip-digit .bottom {
+            position: absolute;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: inherit;
+            backface-visibility: hidden;
+            background-color: transparent;
+        }
+        .flip-digit .top {
+            top: 0;
+            line-height: 1.2em;
+            transform-origin: bottom;
+        }
+        .flip-digit .bottom {
+            bottom: 0;
+            line-height: 0;
+            transform-origin: top;
+            transform: rotateX(180deg);
+        }
+        /* 隐藏原数字 */
+        .digit-hidden {
+            display: none;
+        }
+
         .goal-card {
             background: #ffffff;
             border-radius: 20px;
@@ -220,6 +278,9 @@
             color: #6f655b;
             min-width: 48px;
             text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
         .goal-earned {
             font-size: 13px;
@@ -297,7 +358,7 @@
             <div style="display: flex; flex-direction: column; width: 100%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                     <span class="accumulated-label">⏳ 累计收入</span>
-                    <span class="accumulated-value" id="accumulatedAmount">¥0.00</span>
+                    <span class="accumulated-value" id="accumulatedAmount"><span>¥</span><span class="digits-container"></span></span>
                 </div>
                 <div class="start-time-row">
                     <label>📅 从</label>
@@ -319,7 +380,7 @@
             <div class="income-rate-row">
                 <div class="rate-item">
                     <span class="rate-label">每分钟赚</span>
-                    <span class="rate-value" id="perMinute">¥0.00</span>
+                    <span class="rate-value" id="perMinute"><span>¥</span><span class="digits-container"></span></span>
                 </div>
                 <span class="rate-hint">按月平均到每秒 (30天/月)</span>
             </div>
@@ -339,8 +400,8 @@
         (function() {
             // ----- DOM 元素 -----
             const monthlySalaryInput = document.getElementById('monthlySalary');
-            const perMinuteSpan = document.getElementById('perMinute');
-            const accumulatedSpan = document.getElementById('accumulatedAmount');
+            const perMinuteSpan = document.getElementById('perMinute').querySelector('.digits-container');
+            const accumulatedSpan = document.getElementById('accumulatedAmount').querySelector('.digits-container');
             const startTimeInput = document.getElementById('startTimeInput');
             const goalListDiv = document.getElementById('goalList');
             const addGoalBtn = document.getElementById('addGoalBtn');
@@ -348,11 +409,6 @@
 
             // ----- 常量 -----
             const SECONDS_PER_MONTH = 30 * 24 * 3600;
-            const ANIMATION_DURATION = {
-                accumulated: 300,   // 累计收入动画时长300ms，适合每秒更新
-                perMinute: 800,
-                percent: 800
-            };
 
             // ----- 本地存储键名 -----
             const STORAGE_KEYS = {
@@ -365,71 +421,56 @@
             let goals = [];
             let nextId = 100;
 
-            // 存储每个元素的动画取消函数
-            const animations = new Map();
+            // 存储每个数字容器的当前数字字符串（用于比较）
+            const digitContainers = new Map(); // key: element, value: { lastValue: string }
 
-            // ----- 动画函数：平滑过渡数字，可指定时长 -----
-            function animateNumber(element, newValue, options = {}) {
-                const {
-                    duration = 800,
-                    suffix = '',
-                    decimals = 2,
-                    isCurrency = true,
-                } = options;
-
-                // 如果已经存在该元素的动画，先取消
-                if (animations.has(element)) {
-                    cancelAnimationFrame(animations.get(element));
-                    animations.delete(element);
+            // ----- 翻页数字更新函数 -----
+            function updateFlipDigits(container, newValue, decimals = 2, isCurrency = true) {
+                // 格式化数字为字符串（包括小数点）
+                let numStr = newValue.toFixed(decimals);
+                if (isCurrency) {
+                    // 货币格式：保留两位小数
+                    numStr = newValue.toFixed(2);
                 }
+                const digits = numStr.split('');
 
-                // 获取当前显示值（从文本解析）
-                let currentText = element.innerText;
-                // 去掉非数字字符（保留负号、小数点、数字）
-                let currentValue = parseFloat(currentText.replace(/[^0-9.-]/g, '')) || 0;
-                if (isNaN(currentValue)) currentValue = 0;
+                // 获取当前显示的数字数组（从容器中的子元素）
+                const existingDigits = Array.from(container.children).filter(child => child.classList.contains('flip-digit'));
+                const oldDigits = existingDigits.map(d => d.querySelector('.top')?.textContent || '0');
 
-                const startValue = currentValue;
-                const diff = newValue - startValue;
-                if (Math.abs(diff) < 0.001) {
-                    // 无变化，直接设置
-                    if (isCurrency) {
-                        element.innerText = '¥' + newValue.toFixed(decimals);
-                    } else {
-                        element.innerText = newValue.toFixed(decimals) + suffix;
-                    }
-                    return;
-                }
-
-                const startTime = performance.now();
-
-                const animate = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    let progress = Math.min(elapsed / duration, 1);
-                    // easeOutExpo 缓动
-                    progress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-                    const currentVal = startValue + diff * progress;
-
-                    if (isCurrency) {
-                        element.innerText = '¥' + currentVal.toFixed(decimals);
-                    } else {
-                        element.innerText = currentVal.toFixed(decimals) + suffix;
-                    }
-
-                    if (elapsed < duration) {
-                        animations.set(element, requestAnimationFrame(animate));
-                    } else {
-                        // 动画结束，确保最终值准确
-                        if (isCurrency) {
-                            element.innerText = '¥' + newValue.toFixed(decimals);
-                        } else {
-                            element.innerText = newValue.toFixed(decimals) + suffix;
+                // 如果长度不同，重新构建整个容器（简化处理）
+                if (existingDigits.length !== digits.length) {
+                    // 完全重建
+                    container.innerHTML = '';
+                    digits.forEach((char, index) => {
+                        const digitEl = document.createElement('span');
+                        digitEl.className = 'flip-digit';
+                        digitEl.innerHTML = `
+                            <span class="digit-wrapper">
+                                <span class="top">${char}</span>
+                                <span class="bottom">${char}</span>
+                            </span>
+                        `;
+                        container.appendChild(digitEl);
+                    });
+                } else {
+                    // 逐位比较，触发翻转
+                    digits.forEach((char, index) => {
+                        const digitEl = existingDigits[index];
+                        if (oldDigits[index] !== char) {
+                            // 触发翻转动画
+                            digitEl.classList.add('flip');
+                            setTimeout(() => {
+                                digitEl.classList.remove('flip');
+                            }, 500);
+                            // 更新上下文字
+                            const top = digitEl.querySelector('.top');
+                            const bottom = digitEl.querySelector('.bottom');
+                            if (top) top.textContent = char;
+                            if (bottom) bottom.textContent = char;
                         }
-                        animations.delete(element);
-                    }
-                };
-
-                animations.set(element, requestAnimationFrame(animate));
+                    });
+                }
             }
 
             // ----- 辅助函数 -----
@@ -510,26 +551,18 @@
                 return getPerSecondRate() * secondsPassed;
             }
 
-            // ----- 更新累计显示（使用短动画）-----
+            // ----- 更新累计显示（使用翻页动画）-----
             function updateAccumulated() {
                 const accumulated = getAccumulatedSinceStart();
-                animateNumber(accumulatedSpan, accumulated, { 
-                    isCurrency: true, 
-                    decimals: 2,
-                    duration: ANIMATION_DURATION.accumulated 
-                });
+                updateFlipDigits(accumulatedSpan, accumulated, 2, true);
                 updateAllGoalCards(accumulated);
             }
 
-            // ----- 更新每分钟显示（使用800ms动画）-----
+            // ----- 更新每分钟显示（使用翻页动画）-----
             function updatePerMinute() {
                 const perSecond = getPerSecondRate();
                 const perMinute = perSecond * 60;
-                animateNumber(perMinuteSpan, perMinute, { 
-                    isCurrency: true, 
-                    decimals: 2,
-                    duration: ANIMATION_DURATION.perMinute 
-                });
+                updateFlipDigits(perMinuteSpan, perMinute, 2, true);
             }
 
             // ----- 颜色分级逻辑 -----
@@ -556,7 +589,7 @@
                 return parts.join('');
             }
 
-            // ----- 更新所有商品卡片的动态数据（百分比用800ms动画，已赚直接更新）-----
+            // ----- 更新所有商品卡片的动态数据（百分比用翻页动画）-----
             function updateAllGoalCards(accumulated) {
                 const monthlySalary = parseFloat(monthlySalaryInput.value) || 0;
                 goals.forEach(goal => {
@@ -567,24 +600,24 @@
                     const totalHours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
                     const timeStr = formatWorkTime(totalHours);
 
-                    // 更新进度条值（不需要动画）
+                    // 更新进度条值
                     const progress = card.querySelector('progress');
                     if (progress) {
                         progress.value = percent;
                     }
 
-                    // 百分比数字使用动画
+                    // 百分比数字使用翻页动画
                     const percentSpan = card.querySelector('.goal-percent');
                     if (percentSpan) {
-                        animateNumber(percentSpan, percent, { 
-                            suffix: '%', 
-                            decimals: 1, 
-                            isCurrency: false,
-                            duration: ANIMATION_DURATION.percent 
-                        });
+                        const percentContainer = percentSpan.querySelector('.digits-container');
+                        if (percentContainer) {
+                            updateFlipDigits(percentContainer, percent, 1, false);
+                        } else {
+                            // 兼容旧结构，但实际上我们会创建
+                        }
                     }
 
-                    // 已赚金额直接更新（不加动画，避免频繁动画）
+                    // 已赚金额直接更新（不加动画，避免复杂）
                     const earnedSpan = card.querySelector('.goal-earned');
                     if (earnedSpan) {
                         earnedSpan.innerText = `已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}`;
@@ -634,7 +667,7 @@
                             </div>
                             <div class="goal-progress-row">
                                 <progress value="${percent}" max="100">${percent}%</progress>
-                                <span class="goal-percent">${percent.toFixed(1)}%</span>
+                                <span class="goal-percent"><span class="digits-container"></span>%</span>
                             </div>
                             <div class="goal-earned">已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}</div>
                             <div class="goal-worktime">相当于工作 ${timeStr}</div>
@@ -642,6 +675,16 @@
                     `;
                 });
                 goalListDiv.innerHTML = html;
+
+                // 初始化每个商品卡片的百分比容器
+                document.querySelectorAll('.goal-card').forEach((card, index) => {
+                    const percentSpan = card.querySelector('.goal-percent');
+                    const percentContainer = percentSpan.querySelector('.digits-container');
+                    const percent = goals[index] ? (goals[index].price > 0 ? Math.min(100, (accumulated / goals[index].price) * 100) : 0) : 0;
+                    if (percentContainer) {
+                        updateFlipDigits(percentContainer, percent, 1, false);
+                    }
+                });
 
                 // 绑定商品名称输入事件
                 document.querySelectorAll('.goal-name').forEach((input, index) => {
@@ -742,8 +785,6 @@
 
             window.addEventListener('beforeunload', function() {
                 if (timerInterval) clearInterval(timerInterval);
-                // 取消所有动画
-                animations.forEach((rafId) => cancelAnimationFrame(rafId));
             });
 
             window.deleteGoal = deleteGoal;
