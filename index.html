@@ -54,29 +54,6 @@
             align-items: center;
             gap: 6px;
         }
-        .income-type {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .income-type label {
-            flex: 1;
-            background: white;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 60px;
-            padding: 10px 0;
-            text-align: center;
-            font-weight: 500;
-            color: #4a5a6e;
-            cursor: pointer;
-        }
-        .income-type input[type="radio"] { display: none; }
-        .income-type input[type="radio"]:checked + label {
-            border-color: #e35f5a;
-            background: #fff4f3;
-            color: #c74b46;
-            font-weight: 600;
-        }
         .input-field {
             margin-bottom: 16px;
         }
@@ -97,11 +74,6 @@
             outline: none;
         }
         .input-field input:focus { border-color: #e35f5a; }
-        .row-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
         .stat-row {
             background: white;
             border-radius: 60px;
@@ -211,7 +183,6 @@
             text-align: center;
             margin-top: 24px;
         }
-        .hidden { display: none; }
 
         /* 累计收入区域（带时间设置） */
         .accumulated-row {
@@ -309,7 +280,7 @@
 </head>
 <body>
 <div class="container" id="app">
-    <h1>剁手计算器 <span>v2.1</span></h1>
+    <h1>剁手计算器 <span>v2.4</span></h1>
 
     <!-- 累计收入 + 起始时间设置 -->
     <div class="accumulated-row">
@@ -326,43 +297,14 @@
         </div>
     </div>
 
-    <!-- 收入设置卡片 -->
+    <!-- 收入设置卡片（仅月薪） -->
     <div class="card">
-        <div class="section-title">⚙️ 收入设置</div>
-        <div class="income-type">
-            <input type="radio" name="payType" id="monthly" value="monthly" checked>
-            <label for="monthly">月薪</label>
-            <input type="radio" name="payType" id="hourly" value="hourly">
-            <label for="hourly">时薪</label>
+        <div class="section-title">⚙️ 月薪设置</div>
+        <div class="input-field">
+            <label>💰 月薪（元）</label>
+            <input type="number" id="monthlySalary" value="28000" min="0" step="1000">
         </div>
-
-        <div id="monthlyInputs">
-            <div class="input-field">
-                <label>💰 月薪（元）</label>
-                <input type="number" id="monthlySalary" value="20000" min="0" step="1000">
-            </div>
-            <div class="row-2col">
-                <div class="input-field">
-                    <label>📅 每月工作天数</label>
-                    <input type="number" id="workDays" value="22" min="1" max="31">
-                </div>
-                <div class="input-field">
-                    <label>⏱️ 每日工作时长</label>
-                    <input type="number" id="workHours" value="8" min="1" max="24">
-                </div>
-            </div>
-        </div>
-
-        <div id="hourlyInputs" class="hidden">
-            <div class="input-field">
-                <label>⏳ 时薪（元/小时）</label>
-                <input type="number" id="hourlyRate" value="100" min="0" step="10">
-            </div>
-            <div class="input-field">
-                <label>⏱️ 每日工作时长</label>
-                <input type="number" id="hourlyWorkHours" value="8" min="1" max="24">
-            </div>
-        </div>
+        <p style="font-size:13px; color:#8a9bb5; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
     </div>
 
     <!-- 实时收入数据 -->
@@ -440,35 +382,20 @@
 <script>
     (function() {
         // ----- DOM 元素 -----
-        const monthlyRadio = document.getElementById('monthly');
-        const hourlyRadio = document.getElementById('hourly');
-        const monthlyDiv = document.getElementById('monthlyInputs');
-        const hourlyDiv = document.getElementById('hourlyInputs');
-
         const monthlySalaryInput = document.getElementById('monthlySalary');
-        const workDaysInput = document.getElementById('workDays');
-        const workHoursInput = document.getElementById('workHours');
-        const hourlyRateInput = document.getElementById('hourlyRate');
-        const hourlyWorkHoursInput = document.getElementById('hourlyWorkHours');
-
         const perSecondSpan = document.getElementById('perSecond');
         const perMinuteSpan = document.getElementById('perMinute');
-
         const priceInput = document.getElementById('priceInput');
         const workTimeSpan = document.getElementById('workTime');
         const thresholdSlider = document.getElementById('thresholdSlider');
         const thresholdDisplay = document.getElementById('thresholdDisplay');
         const warningBox = document.getElementById('warningBox');
         const warningHoursSpan = document.getElementById('warningHours');
-
         const milkTeaSpan = document.getElementById('milkTea');
         const lunchSpan = document.getElementById('lunch');
         const movieSpan = document.getElementById('movie');
-
         const resistBtn = document.getElementById('resistBtn');
         const resistCounter = document.getElementById('resistCounter');
-
-        // 新增元素
         const accumulatedSpan = document.getElementById('accumulatedAmount');
         const startTimeInput = document.getElementById('startTimeInput');
         const goalNameInput = document.getElementById('goalName');
@@ -481,20 +408,16 @@
         const MILK_TEA_PRICE = 25;
         const LUNCH_PRICE = 40;
         const MOVIE_PRICE = 50;
+        const SECONDS_PER_MONTH = 30 * 24 * 3600; // 按30天/月计算
 
         // ----- 本地存储键名 -----
         const STORAGE_KEYS = {
-            payType: 'daoshou_payType',
             monthlySalary: 'daoshou_monthlySalary',
-            workDays: 'daoshou_workDays',
-            workHours: 'daoshou_workHours',
-            hourlyRate: 'daoshou_hourlyRate',
-            hourlyWorkHours: 'daoshou_hourlyWorkHours',
             threshold: 'daoshou_threshold',
             resistCount: 'daoshou_resistCount',
             goalName: 'daoshou_goalName',
             goalPrice: 'daoshou_goalPrice',
-            startTime: 'daoshou_startTime',   // 存储起始时间
+            startTime: 'daoshou_startTime',
         };
 
         let resistCount = 0;
@@ -510,7 +433,7 @@
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
 
-        // ----- 获取当前设置的起始时间（返回 Date 对象，如果未设置则默认为今天0点）-----
+        // ----- 获取当前设置的起始时间（返回 Date 对象）-----
         function getStartTime() {
             const saved = localStorage.getItem(STORAGE_KEYS.startTime);
             if (saved) {
@@ -525,22 +448,7 @@
 
         // ----- 加载设置 -----
         function loadSettings() {
-            const savedPayType = localStorage.getItem(STORAGE_KEYS.payType);
-            if (savedPayType === 'hourly') {
-                hourlyRadio.checked = true;
-                monthlyDiv.classList.add('hidden');
-                hourlyDiv.classList.remove('hidden');
-            } else {
-                monthlyRadio.checked = true;
-                monthlyDiv.classList.remove('hidden');
-                hourlyDiv.classList.add('hidden');
-            }
-
             if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
-            if (localStorage.getItem(STORAGE_KEYS.workDays)) workDaysInput.value = localStorage.getItem(STORAGE_KEYS.workDays);
-            if (localStorage.getItem(STORAGE_KEYS.workHours)) workHoursInput.value = localStorage.getItem(STORAGE_KEYS.workHours);
-            if (localStorage.getItem(STORAGE_KEYS.hourlyRate)) hourlyRateInput.value = localStorage.getItem(STORAGE_KEYS.hourlyRate);
-            if (localStorage.getItem(STORAGE_KEYS.hourlyWorkHours)) hourlyWorkHoursInput.value = localStorage.getItem(STORAGE_KEYS.hourlyWorkHours);
             if (localStorage.getItem(STORAGE_KEYS.threshold)) {
                 const thr = parseFloat(localStorage.getItem(STORAGE_KEYS.threshold));
                 thresholdSlider.value = thr;
@@ -560,35 +468,23 @@
         }
 
         function saveSettings() {
-            localStorage.setItem(STORAGE_KEYS.payType, monthlyRadio.checked ? 'monthly' : 'hourly');
             localStorage.setItem(STORAGE_KEYS.monthlySalary, monthlySalaryInput.value);
-            localStorage.setItem(STORAGE_KEYS.workDays, workDaysInput.value);
-            localStorage.setItem(STORAGE_KEYS.workHours, workHoursInput.value);
-            localStorage.setItem(STORAGE_KEYS.hourlyRate, hourlyRateInput.value);
-            localStorage.setItem(STORAGE_KEYS.hourlyWorkHours, hourlyWorkHoursInput.value);
             localStorage.setItem(STORAGE_KEYS.threshold, thresholdSlider.value);
             localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
             localStorage.setItem(STORAGE_KEYS.goalName, goalNameInput.value);
             localStorage.setItem(STORAGE_KEYS.goalPrice, goalPriceInput.value);
-            // 起始时间保存
             if (startTimeInput.value) {
                 localStorage.setItem(STORAGE_KEYS.startTime, new Date(startTimeInput.value).toISOString());
             }
         }
 
-        // ----- 计算当前时薪 -----
-        function getHourlyRate() {
-            if (monthlyRadio.checked) {
-                const monthly = parseFloat(monthlySalaryInput.value) || 0;
-                const days = parseFloat(workDaysInput.value) || 1;
-                const hours = parseFloat(workHoursInput.value) || 1;
-                return monthly / days / hours;
-            } else {
-                return parseFloat(hourlyRateInput.value) || 0;
-            }
+        // ----- 计算当前每秒收入（元/秒）-----
+        function getPerSecondRate() {
+            const monthly = parseFloat(monthlySalaryInput.value) || 0;
+            return monthly / SECONDS_PER_MONTH;
         }
 
-        // ----- 计算从起始时间到现在的累计收入 -----
+        // ----- 计算从起始时间到现在的累计收入（全天候）-----
         function getAccumulatedSinceStart() {
             const startTimeStr = startTimeInput.value;
             if (!startTimeStr) return 0;
@@ -596,8 +492,8 @@
             if (isNaN(startDate.getTime())) return 0;
             const now = new Date();
             const secondsPassed = Math.max(0, Math.floor((now - startDate) / 1000));
-            const hourlyRate = getHourlyRate();
-            return (hourlyRate / 3600) * secondsPassed;
+            const perSecond = getPerSecondRate();
+            return perSecond * secondsPassed;
         }
 
         // ----- 更新累计收入显示（每秒调用）-----
@@ -629,16 +525,15 @@
 
         // ----- 更新所有其他显示 -----
         function updateAll() {
-            const hourlyRate = getHourlyRate();
-            const perSecond = hourlyRate / 3600;
-            const perMinute = hourlyRate / 60;
+            const perSecond = getPerSecondRate();
+            const perMinute = perSecond * 60;
 
             perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
             perMinuteSpan.innerText = '¥' + perMinute.toFixed(2);
 
             const price = parseFloat(priceInput.value) || 0;
             let workHoursFloat = 0;
-            if (hourlyRate > 0) workHoursFloat = price / hourlyRate;
+            if (perSecond > 0) workHoursFloat = price / (perSecond * 3600);
             const hours = Math.floor(workHoursFloat);
             const minutes = Math.round((workHoursFloat - hours) * 60);
             workTimeSpan.innerText = (price === 0) ? '0 小时 0 分钟' : `${hours} 小时 ${minutes} 分钟`;
@@ -681,13 +576,9 @@
         });
 
         // ----- 事件绑定 -----
-        monthlyRadio.addEventListener('change', updateAll);
-        hourlyRadio.addEventListener('change', updateAll);
-
         const inputsToWatch = [
-            monthlySalaryInput, workDaysInput, workHoursInput,
-            hourlyRateInput, hourlyWorkHoursInput, priceInput, thresholdSlider,
-            goalNameInput, goalPriceInput, startTimeInput   // 起始时间变化也要重新计算
+            monthlySalaryInput, priceInput, thresholdSlider,
+            goalNameInput, goalPriceInput, startTimeInput
         ];
         inputsToWatch.forEach(el => el.addEventListener('input', updateAll));
 
