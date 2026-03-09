@@ -14,6 +14,7 @@
             align-items: center;
             justify-content: center;
             padding: 16px;
+            position: relative;
         }
         .container {
             max-width: 520px;
@@ -177,6 +178,7 @@
             border: 1.5px solid #e2e8f0;
             border-radius: 40px;
             font-size: 15px;
+            background: white;
         }
         .goal-header input:focus { border-color: #e35f5a; }
         .delete-btn {
@@ -210,13 +212,15 @@
             font-size: 14px;
             color: #3a4c62;
             margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .goal-worktime {
             font-size: 15px;
             font-weight: 500;
             color: #1f2a3f;
             background: #f0f4fe;
-            padding: 8px 12px;
+            padding: 4px 12px;
             border-radius: 40px;
             display: inline-block;
         }
@@ -244,322 +248,392 @@
             text-align: center;
             margin-top: 24px;
         }
+
+        /* Toast 样式 */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 16px;
+            z-index: 1000;
+            transition: opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #toast.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
-<div class="container" id="app">
-    <h1>剁手计算器 <span>v3.0</span></h1>
+    <div id="toast">仅支持输入数字</div>
 
-    <!-- 累计收入 + 起始时间 -->
-    <div class="accumulated-row">
-        <div style="display: flex; flex-direction: column; width: 100%;">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span class="accumulated-label">⏳ 累计收入</span>
-                <span class="accumulated-value" id="accumulatedAmount">¥0.00</span>
+    <div class="container" id="app">
+        <h1>剁手计算器 <span>v3.1</span></h1>
+
+        <!-- 累计收入 + 起始时间 -->
+        <div class="accumulated-row">
+            <div style="display: flex; flex-direction: column; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="accumulated-label">⏳ 累计收入</span>
+                    <span class="accumulated-value" id="accumulatedAmount">¥0.00</span>
+                </div>
+                <div class="start-time-row">
+                    <label>📅 从</label>
+                    <input type="datetime-local" id="startTimeInput">
+                </div>
             </div>
-            <div class="start-time-row">
-                <label>📅 从</label>
-                <input type="datetime-local" id="startTimeInput">
+        </div>
+
+        <!-- 月薪设置 -->
+        <div class="card">
+            <div class="section-title">⚙️ 月薪设置</div>
+            <div class="input-field">
+                <label>💰 月薪（元）</label>
+                <input type="number" id="monthlySalary" value="28000" min="0" step="1000">
+            </div>
+            <p style="font-size:13px; color:#8a9bb5; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
+        </div>
+
+        <!-- 每秒/每分钟合并行 -->
+        <div class="rate-row">
+            <div class="rate-item">
+                <span class="rate-label">每秒赚</span>
+                <span class="rate-value" id="perSecond">¥0.00</span>
+            </div>
+            <div class="rate-item">
+                <span class="rate-label">每分钟赚</span>
+                <span class="rate-value" id="perMinute">¥0.00</span>
             </div>
         </div>
+
+        <!-- 攒钱目标模块 -->
+        <div class="card" style="padding-bottom: 12px;">
+            <div class="section-title">🎯 攒钱目标</div>
+
+            <!-- 商品列表容器 -->
+            <div id="goalList"></div>
+
+            <!-- 添加商品按钮 -->
+            <button class="add-btn" id="addGoalBtn">+ 添加商品</button>
+
+            <!-- 全局忍住按钮 -->
+            <div style="margin-top: 20px;">
+                <button class="btn" id="resistBtn">💪 忍住没买</button>
+                <div class="counter-badge" id="resistCounter" style="margin-top: 12px; text-align: center;">今日忍住 0 次</div>
+            </div>
+        </div>
+
+        <div class="footnote">所有设置自动保存 · 花钱前看一眼</div>
     </div>
 
-    <!-- 月薪设置 -->
-    <div class="card">
-        <div class="section-title">⚙️ 月薪设置</div>
-        <div class="input-field">
-            <label>💰 月薪（元）</label>
-            <input type="number" id="monthlySalary" value="28000" min="0" step="1000">
-        </div>
-        <p style="font-size:13px; color:#8a9bb5; margin-top:-8px;">按月平均到每秒（按30天/月计算）</p>
-    </div>
+    <script>
+        (function() {
+            // ----- DOM 元素 -----
+            const monthlySalaryInput = document.getElementById('monthlySalary');
+            const perSecondSpan = document.getElementById('perSecond');
+            const perMinuteSpan = document.getElementById('perMinute');
+            const accumulatedSpan = document.getElementById('accumulatedAmount');
+            const startTimeInput = document.getElementById('startTimeInput');
+            const resistBtn = document.getElementById('resistBtn');
+            const resistCounter = document.getElementById('resistCounter');
+            const goalListDiv = document.getElementById('goalList');
+            const addGoalBtn = document.getElementById('addGoalBtn');
+            const toast = document.getElementById('toast');
 
-    <!-- 每秒/每分钟合并行 -->
-    <div class="rate-row">
-        <div class="rate-item">
-            <span class="rate-label">每秒赚</span>
-            <span class="rate-value" id="perSecond">¥0.00</span>
-        </div>
-        <div class="rate-item">
-            <span class="rate-label">每分钟赚</span>
-            <span class="rate-value" id="perMinute">¥0.00</span>
-        </div>
-    </div>
+            // ----- 常量 -----
+            const SECONDS_PER_MONTH = 30 * 24 * 3600; // 按30天/月
 
-    <!-- 攒钱目标模块 -->
-    <div class="card" style="padding-bottom: 12px;">
-        <div class="section-title">🎯 攒钱目标</div>
+            // ----- 本地存储键名 -----
+            const STORAGE_KEYS = {
+                monthlySalary: 'daoshou_monthlySalary',
+                startTime: 'daoshou_startTime',
+                resistCount: 'daoshou_resistCount',
+                goals: 'daoshou_goals',       // 商品列表 [{ id, name, price }]
+            };
 
-        <!-- 商品列表容器 -->
-        <div id="goalList"></div>
+            // ----- 全局变量 -----
+            let resistCount = 0;
+            let timerInterval = null;
+            let goals = [];                     // 商品数组
+            let nextId = 100;                    // 用于生成唯一id
 
-        <!-- 添加商品按钮 -->
-        <button class="add-btn" id="addGoalBtn">+ 添加商品</button>
-
-        <!-- 全局忍住按钮 -->
-        <div style="margin-top: 20px;">
-            <button class="btn" id="resistBtn">💪 忍住没买</button>
-            <div class="counter-badge" id="resistCounter" style="margin-top: 12px; text-align: center;">今日忍住 0 次</div>
-        </div>
-    </div>
-
-    <div class="footnote">所有设置自动保存 · 花钱前看一眼</div>
-</div>
-
-<script>
-    (function() {
-        // ----- DOM 元素 -----
-        const monthlySalaryInput = document.getElementById('monthlySalary');
-        const perSecondSpan = document.getElementById('perSecond');
-        const perMinuteSpan = document.getElementById('perMinute');
-        const accumulatedSpan = document.getElementById('accumulatedAmount');
-        const startTimeInput = document.getElementById('startTimeInput');
-        const resistBtn = document.getElementById('resistBtn');
-        const resistCounter = document.getElementById('resistCounter');
-        const goalListDiv = document.getElementById('goalList');
-        const addGoalBtn = document.getElementById('addGoalBtn');
-
-        // ----- 常量 -----
-        const SECONDS_PER_MONTH = 30 * 24 * 3600; // 按30天/月
-
-        // ----- 本地存储键名 -----
-        const STORAGE_KEYS = {
-            monthlySalary: 'daoshou_monthlySalary',
-            startTime: 'daoshou_startTime',
-            resistCount: 'daoshou_resistCount',
-            goals: 'daoshou_goals',       // 商品列表 [{ id, name, price }]
-        };
-
-        // ----- 全局变量 -----
-        let resistCount = 0;
-        let timerInterval = null;
-        let goals = [];                     // 商品数组
-        let nextId = 100;                    // 用于生成唯一id
-
-        // ----- 辅助：格式化日期时间 -----
-        function formatDateTimeForInput(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
-
-        // ----- 获取起始时间 -----
-        function getStartTime() {
-            const saved = localStorage.getItem(STORAGE_KEYS.startTime);
-            if (saved) {
-                const d = new Date(saved);
-                if (!isNaN(d.getTime())) return d;
+            // ----- 辅助：显示toast -----
+            function showToast(message) {
+                toast.innerText = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
             }
-            const defaultStart = new Date();
-            defaultStart.setHours(0, 0, 0, 0);
-            return defaultStart;
-        }
 
-        // ----- 加载设置 -----
-        function loadSettings() {
-            // 月薪
-            if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) {
-                monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
+            // ----- 辅助：格式化日期时间 -----
+            function formatDateTimeForInput(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
             }
-            // 起始时间
-            const start = getStartTime();
-            startTimeInput.value = formatDateTimeForInput(start);
-            // 忍住次数
-            resistCount = parseInt(localStorage.getItem(STORAGE_KEYS.resistCount)) || 0;
-            updateResistCounter();
-            // 商品列表
-            const savedGoals = localStorage.getItem(STORAGE_KEYS.goals);
-            if (savedGoals) {
-                try {
-                    goals = JSON.parse(savedGoals);
-                    // 确保每个商品有id（旧数据可能没有）
-                    goals = goals.map(g => ({ ...g, id: g.id || nextId++ }));
-                } catch (e) {
-                    goals = [];
+
+            // ----- 获取起始时间 -----
+            function getStartTime() {
+                const saved = localStorage.getItem(STORAGE_KEYS.startTime);
+                if (saved) {
+                    const d = new Date(saved);
+                    if (!isNaN(d.getTime())) return d;
                 }
-            } else {
-                // 默认两个示例商品
-                goals = [
-                    { id: nextId++, name: 'Switch', price: 2500 },
-                    { id: nextId++, name: 'iPhone 15', price: 8000 },
-                ];
+                const defaultStart = new Date();
+                defaultStart.setHours(0, 0, 0, 0);
+                return defaultStart;
             }
-            renderGoals();
-        }
 
-        // ----- 保存所有设置 -----
-        function saveSettings() {
-            localStorage.setItem(STORAGE_KEYS.monthlySalary, monthlySalaryInput.value);
-            localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
-            localStorage.setItem(STORAGE_KEYS.goals, JSON.stringify(goals));
-            if (startTimeInput.value) {
-                localStorage.setItem(STORAGE_KEYS.startTime, new Date(startTimeInput.value).toISOString());
+            // ----- 加载设置 -----
+            function loadSettings() {
+                // 月薪
+                if (localStorage.getItem(STORAGE_KEYS.monthlySalary)) {
+                    monthlySalaryInput.value = localStorage.getItem(STORAGE_KEYS.monthlySalary);
+                }
+                // 起始时间
+                const start = getStartTime();
+                startTimeInput.value = formatDateTimeForInput(start);
+                // 忍住次数
+                resistCount = parseInt(localStorage.getItem(STORAGE_KEYS.resistCount)) || 0;
+                updateResistCounter();
+                // 商品列表
+                const savedGoals = localStorage.getItem(STORAGE_KEYS.goals);
+                if (savedGoals) {
+                    try {
+                        goals = JSON.parse(savedGoals);
+                        // 确保每个商品有id（旧数据可能没有）
+                        goals = goals.map(g => ({ ...g, id: g.id || nextId++ }));
+                    } catch (e) {
+                        goals = [];
+                    }
+                } else {
+                    // 默认两个示例商品
+                    goals = [
+                        { id: nextId++, name: 'Switch', price: 2500 },
+                        { id: nextId++, name: 'iPhone 15', price: 8000 },
+                    ];
+                }
+                renderGoals();
             }
-        }
 
-        // ----- 计算每秒收入 -----
-        function getPerSecondRate() {
-            const monthly = parseFloat(monthlySalaryInput.value) || 0;
-            return monthly / SECONDS_PER_MONTH;
-        }
+            // ----- 保存所有设置 -----
+            function saveSettings() {
+                localStorage.setItem(STORAGE_KEYS.monthlySalary, monthlySalaryInput.value);
+                localStorage.setItem(STORAGE_KEYS.resistCount, resistCount);
+                localStorage.setItem(STORAGE_KEYS.goals, JSON.stringify(goals));
+                if (startTimeInput.value) {
+                    localStorage.setItem(STORAGE_KEYS.startTime, new Date(startTimeInput.value).toISOString());
+                }
+            }
 
-        // ----- 计算累计收入 -----
-        function getAccumulatedSinceStart() {
-            const startTimeStr = startTimeInput.value;
-            if (!startTimeStr) return 0;
-            const startDate = new Date(startTimeStr);
-            if (isNaN(startDate.getTime())) return 0;
-            const now = new Date();
-            const secondsPassed = Math.max(0, Math.floor((now - startDate) / 1000));
-            return getPerSecondRate() * secondsPassed;
-        }
+            // ----- 计算每秒收入 -----
+            function getPerSecondRate() {
+                const monthly = parseFloat(monthlySalaryInput.value) || 0;
+                return monthly / SECONDS_PER_MONTH;
+            }
 
-        // ----- 更新累计显示 -----
-        function updateAccumulated() {
-            const accumulated = getAccumulatedSinceStart();
-            accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
-            // 重新渲染商品列表（更新进度）
-            renderGoals();
-        }
+            // ----- 计算累计收入 -----
+            function getAccumulatedSinceStart() {
+                const startTimeStr = startTimeInput.value;
+                if (!startTimeStr) return 0;
+                const startDate = new Date(startTimeStr);
+                if (isNaN(startDate.getTime())) return 0;
+                const now = new Date();
+                const secondsPassed = Math.max(0, Math.floor((now - startDate) / 1000));
+                return getPerSecondRate() * secondsPassed;
+            }
 
-        // ----- 更新每秒/每分钟显示 -----
-        function updateRates() {
-            const perSecond = getPerSecondRate();
-            perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
-            perMinuteSpan.innerText = '¥' + (perSecond * 60).toFixed(2);
-        }
+            // ----- 更新累计显示 -----
+            function updateAccumulated() {
+                const accumulated = getAccumulatedSinceStart();
+                accumulatedSpan.innerText = '¥' + accumulated.toFixed(2);
+                // 重新渲染商品列表（更新进度）
+                renderGoals();
+            }
 
-        // ----- 根据价格获取卡片样式类 -----
-        function getPriceColorClass(price) {
-            if (price < 1000) return 'green';
-            if (price <= 5000) return 'yellow';
-            return 'red';
-        }
+            // ----- 更新每秒/每分钟显示 -----
+            function updateRates() {
+                const perSecond = getPerSecondRate();
+                perSecondSpan.innerText = '¥' + perSecond.toFixed(2);
+                perMinuteSpan.innerText = '¥' + (perSecond * 60).toFixed(2);
+            }
 
-        // ----- 渲染商品列表 -----
-        function renderGoals() {
-            const accumulated = getAccumulatedSinceStart();
-            let html = '';
-            goals.forEach(goal => {
-                const price = goal.price || 0;
-                const percent = price > 0 ? Math.min(100, (accumulated / price) * 100) : 0;
-                const hours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
-                const h = Math.floor(hours);
-                const m = Math.round((hours - h) * 60);
-                const timeStr = (price === 0) ? '0 小时 0 分钟' : `${h} 小时 ${m} 分钟`;
-                const colorClass = getPriceColorClass(price);
+            // ----- 根据价格获取卡片样式类 -----
+            function getPriceColorClass(price) {
+                if (price < 1000) return 'green';
+                if (price <= 5000) return 'yellow';
+                return 'red';
+            }
 
-                html += `
-                    <div class="goal-card ${colorClass}" data-id="${goal.id}">
-                        <div class="goal-header">
-                            <input type="text" class="goal-name" value="${escapeHtml(goal.name)}" placeholder="商品名称">
-                            <input type="number" class="goal-price" value="${price}" min="0" step="10" placeholder="价格">
-                            <button class="delete-btn" onclick="deleteGoal(${goal.id})">✕</button>
+            // ----- 过滤价格输入（只允许数字和小数点）-----
+            function filterPriceInput(value) {
+                // 移除所有非数字和小数点的字符
+                let filtered = value.replace(/[^\d.]/g, '');
+                // 确保只有一个小数点
+                const parts = filtered.split('.');
+                if (parts.length > 2) {
+                    filtered = parts[0] + '.' + parts.slice(1).join('');
+                }
+                return filtered;
+            }
+
+            // ----- 渲染商品列表 -----
+            function renderGoals() {
+                const accumulated = getAccumulatedSinceStart();
+                let html = '';
+                goals.forEach(goal => {
+                    const price = goal.price || 0;
+                    const percent = price > 0 ? Math.min(100, (accumulated / price) * 100) : 0;
+                    const hours = price > 0 ? (price / getPerSecondRate() / 3600) : 0;
+                    const h = Math.floor(hours);
+                    const m = Math.round((hours - h) * 60);
+                    const timeStr = (price === 0) ? '0 小时 0 分钟' : `${h} 小时 ${m} 分钟`;
+                    const colorClass = getPriceColorClass(price);
+
+                    html += `
+                        <div class="goal-card ${colorClass}" data-id="${goal.id}">
+                            <div class="goal-header">
+                                <input type="text" class="goal-name" value="${escapeHtml(goal.name)}" placeholder="商品名称">
+                                <input type="text" class="goal-price" value="${price}" inputmode="numeric" data-id="${goal.id}" placeholder="价格">
+                                <button class="delete-btn" onclick="deleteGoal(${goal.id})">✕</button>
+                            </div>
+                            <div class="goal-progress-row">
+                                <progress value="${percent}" max="100">${percent}%</progress>
+                                <span class="goal-percent">${percent.toFixed(1)}%</span>
+                            </div>
+                            <div class="goal-stats">
+                                <span>已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}</span>
+                                <span class="goal-worktime">⏱️ ${timeStr}</span>
+                            </div>
                         </div>
-                        <div class="goal-progress-row">
-                            <progress value="${percent}" max="100">${percent}%</progress>
-                            <span class="goal-percent">${percent.toFixed(1)}%</span>
-                        </div>
-                        <div class="goal-stats">
-                            <span>已赚: ¥${accumulated.toFixed(2)} / ¥${price.toFixed(2)}</span>
-                            <span class="goal-worktime">⏱️ ${timeStr}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            goalListDiv.innerHTML = html;
-
-            // 为所有商品输入框绑定事件（因为动态生成，用事件委托或在生成后绑定）
-            document.querySelectorAll('.goal-name').forEach((input, index) => {
-                input.addEventListener('input', (e) => {
-                    goals[index].name = e.target.value;
-                    saveSettings();
+                    `;
                 });
-            });
-            document.querySelectorAll('.goal-price').forEach((input, index) => {
-                input.addEventListener('input', (e) => {
-                    const val = parseFloat(e.target.value) || 0;
-                    goals[index].price = val;
-                    saveSettings();
-                    renderGoals(); // 价格变化重新渲染（颜色、进度）
+                goalListDiv.innerHTML = html;
+
+                // 绑定商品名称输入事件
+                document.querySelectorAll('.goal-name').forEach((input, index) => {
+                    input.addEventListener('input', (e) => {
+                        goals[index].name = e.target.value;
+                        saveSettings();
+                    });
                 });
+
+                // 绑定价格输入事件：实时过滤非法字符并提示
+                document.querySelectorAll('.goal-price').forEach(input => {
+                    // 过滤输入
+                    input.addEventListener('input', function(e) {
+                        const rawValue = e.target.value;
+                        const filtered = filterPriceInput(rawValue);
+                        if (filtered !== rawValue) {
+                            e.target.value = filtered;
+                            showToast('仅支持输入数字');
+                        }
+                    });
+
+                    // 失焦时正式更新价格
+                    input.addEventListener('blur', function(e) {
+                        const id = parseInt(e.target.dataset.id);
+                        const goal = goals.find(g => g.id === id);
+                        if (!goal) return;
+
+                        let newPrice = parseFloat(e.target.value);
+                        if (isNaN(newPrice) || e.target.value.trim() === '') {
+                            // 非法输入，恢复原值
+                            e.target.value = goal.price;
+                            showToast('仅支持输入数字');
+                            return;
+                        }
+                        // 更新价格
+                        if (newPrice !== goal.price) {
+                            goal.price = newPrice;
+                            saveSettings();
+                            renderGoals(); // 重新渲染以更新进度和颜色
+                        }
+                    });
+                });
+            }
+
+            // 简单的防XSS转义
+            function escapeHtml(unsafe) {
+                return unsafe.replace(/[&<>"]/g, function(m) {
+                    if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
+                    return m;
+                });
+            }
+
+            // ----- 删除商品（需要挂在window上供onclick调用）-----
+            window.deleteGoal = function(id) {
+                goals = goals.filter(g => g.id !== id);
+                saveSettings();
+                renderGoals();
+            };
+
+            // ----- 添加商品 -----
+            function addGoal() {
+                goals.push({
+                    id: nextId++,
+                    name: '新商品',
+                    price: 1000,
+                });
+                saveSettings();
+                renderGoals();
+            }
+
+            // ----- 忍住按钮 -----
+            function updateResistCounter() {
+                resistCounter.innerText = `今日忍住 ${resistCount} 次`;
+            }
+            resistBtn.addEventListener('click', function() {
+                resistCount++;
+                updateResistCounter();
+                saveSettings();
             });
-        }
 
-        // 简单的防XSS转义
-        function escapeHtml(unsafe) {
-            return unsafe.replace(/[&<>"]/g, function(m) {
-                if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; if(m === '"') return '&quot;';
-                return m;
+            // ----- 事件绑定（静态元素）-----
+            monthlySalaryInput.addEventListener('input', () => {
+                updateRates();
+                updateAccumulated(); // 重新计算累计并刷新商品
+                saveSettings();
             });
-        }
-
-        // ----- 删除商品（需要挂在window上供onclick调用）-----
-        window.deleteGoal = function(id) {
-            goals = goals.filter(g => g.id !== id);
-            saveSettings();
-            renderGoals();
-        };
-
-        // ----- 添加商品 -----
-        function addGoal() {
-            goals.push({
-                id: nextId++,
-                name: '新商品',
-                price: 1000,
+            startTimeInput.addEventListener('input', () => {
+                updateAccumulated();
+                saveSettings();
             });
-            saveSettings();
-            renderGoals();
-        }
+            addGoalBtn.addEventListener('click', addGoal);
 
-        // ----- 忍住按钮 -----
-        function updateResistCounter() {
-            resistCounter.innerText = `今日忍住 ${resistCount} 次`;
-        }
-        resistBtn.addEventListener('click', function() {
-            resistCount++;
-            updateResistCounter();
-            saveSettings();
-        });
+            // ----- 定时器每秒更新累计收入 -----
+            function startTimer() {
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    updateAccumulated(); // 每秒重新计算累计并重新渲染商品
+                }, 1000);
+            }
 
-        // ----- 事件绑定（静态元素）-----
-        monthlySalaryInput.addEventListener('input', () => {
-            updateRates();
-            updateAccumulated(); // 重新计算累计并刷新商品
-            saveSettings();
-        });
-        startTimeInput.addEventListener('input', () => {
-            updateAccumulated();
-            saveSettings();
-        });
-        addGoalBtn.addEventListener('click', addGoal);
+            // ----- 初始化 -----
+            window.addEventListener('load', function() {
+                loadSettings();
+                updateRates();
+                updateAccumulated();
+                startTimer();
+            });
 
-        // ----- 定时器每秒更新累计收入 -----
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                updateAccumulated(); // 每秒重新计算累计并重新渲染商品
-            }, 1000);
-        }
+            window.addEventListener('beforeunload', function() {
+                if (timerInterval) clearInterval(timerInterval);
+            });
 
-        // ----- 初始化 -----
-        window.addEventListener('load', function() {
-            loadSettings();
-            updateRates();
-            updateAccumulated();
-            startTimer();
-        });
-
-        window.addEventListener('beforeunload', function() {
-            if (timerInterval) clearInterval(timerInterval);
-        });
-
-        // 暴露deleteGoal到全局（用于内联onclick）
-        window.deleteGoal = deleteGoal;
-    })();
-</script>
+            // 暴露deleteGoal到全局（用于内联onclick）
+            window.deleteGoal = deleteGoal;
+        })();
+    </script>
 </body>
 </html>
